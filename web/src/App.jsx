@@ -62,30 +62,12 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/createList"
-        element={
-          <PrivateRoute>
-            <CreateList />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/list/:id/purchase" // Esta es la ruta a la que apunta el botón "Iniciar Compra"
-        element={
-          <PrivateRoute>
-            <ShoppingList /> {/* Aquí se renderiza tu nueva página */}
-          </PrivateRoute>
-        }
-      />
+      <Route element={<PrivateRoute />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/createList" element={<CreateList />} />
+        <Route path="/list/:id/purchase" element={<ShoppingList />} />
+        {/* <Route path="/list/:listId/details" element={<ListDetailsPage />} /> */}
+      </Route>
       {/* Puedes añadir una ruta de fallback para páginas no encontradas */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

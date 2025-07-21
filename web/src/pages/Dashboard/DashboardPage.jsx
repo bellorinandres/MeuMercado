@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
       const data = await fetchAllListsByUserId(user.id, user.token);
 
-      // Procesamiento de listas pendientes (sin cambios)
+      // Procesamiento de listas pendientes (sin cambios)|
       const loadedPendingLists = data.pending.map((list) => ({
         id: list.id_list,
         titulo: list.name_list,
