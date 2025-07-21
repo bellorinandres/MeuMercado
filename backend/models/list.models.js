@@ -464,7 +464,7 @@ export const completeListPurchase = async (listId, userId, items) => {
   }
 };
 
-export const getDetailsByUserIdListID = async (list_id, user_id) => {
+export const getListCompleteByUserIdListId = async (list_id, user_id) => {
   let conn;
   try {
     conn = await pool.getConnection();
@@ -497,7 +497,7 @@ export const getDetailsByUserIdListID = async (list_id, user_id) => {
     );
     return rows;
   } catch (error) {
-    console.error("Error in getDetailListCompleted model:", error);
+    console.error("Error in getListItemsByListId model:", error);
     throw error;
   } finally {
     if (conn) conn.release();

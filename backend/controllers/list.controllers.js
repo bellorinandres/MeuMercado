@@ -8,6 +8,7 @@ import {
   getListItemsByListId,
   deleteListById,
   completeListPurchase,
+  getListCompleteByUserIdListId,
 } from "../models/list.models.js";
 
 // --- Controlador para crear una nueva lista ---
@@ -200,7 +201,7 @@ export const getDetailListCompleted = async (req, res) => {
   }
 
   try {
-    const list = await getListItemsByListId(list_id, userId);
+    const list = await getListCompleteByUserIdListId(list_id, userId);
 
     if (list.length === 0) {
       // Podría ser una lista vacía o que no existe/no pertenece al usuario
@@ -213,7 +214,7 @@ export const getDetailListCompleted = async (req, res) => {
     console.log(
       "Detalles de la lista obtenidos (en controlador):",
       list.length,
-      "items."
+      "list."
     );
   } catch (error) {
     console.error(

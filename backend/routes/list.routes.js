@@ -20,4 +20,5 @@ listRouter.get("/completeDetails/:list_id", getDetailListCompleted);
 listRouter.delete("/:list_id", deleteList);
 
 listRouter.put("/:listId/complete", completeList);
+
 export default listRouter;
