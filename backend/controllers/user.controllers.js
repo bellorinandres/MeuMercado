@@ -41,7 +41,7 @@ export const createUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.validatedData;
 
   try {
     const user = await findUserByEmail(email);
