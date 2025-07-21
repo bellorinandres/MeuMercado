@@ -1,6 +1,7 @@
 // ✅ Importa `import.meta.env` para Vite
 // Si usas Create React App (CRA), sería `process.env.NODE_ENV`
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
 // Si usas Create React App (CRA) en lugar de Vite, descomenta la siguiente línea y comenta la de arriba:
 // const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api";
@@ -91,7 +92,9 @@ export async function getShoppingListDetails(listId, token) {
     // Si el backend devuelve un array vacío, o null, significa que no hay datos para esa lista/usuario
     if (!rawData || rawData.length === 0) {
       // Considera lanzar un error para que el componente pueda manejar un 404
-      const notFoundError = new Error("Lista no encontrada o no tienes permiso para verla.");
+      const notFoundError = new Error(
+        "Lista no encontrada o no tienes permiso para verla."
+      );
       notFoundError.statusCode = 404; // Añadir un status code para manejo específico
       throw notFoundError;
     }

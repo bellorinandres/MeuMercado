@@ -62,7 +62,7 @@ const getAuthHeaders = (token) => {
  * @param {string} token - El token de autenticación del usuario.
  * @returns {Promise<Object>} - Objeto con los detalles de la lista (ej. { name, products: [] }).
  */
-export const fetchShoppingListDetails = async (listId, token) => {
+/* export const fetchShoppingListDetails = async (listId, token) => {
   try {
     const response = await fetch(`${API_BASE_URL}/lists/shopping/${listId}`, {
       method: "GET",
@@ -91,7 +91,7 @@ export const fetchShoppingListDetails = async (listId, token) => {
     console.error("Error fetching shopping list details:", error);
     throw error;
   }
-};
+}; */
 
 /**
  * Obtiene todas las listas (pendientes y compradas) de un usuario específico.
@@ -220,3 +220,38 @@ export const updateListItem = async (listId, itemId, itemData, token) => {
   }
 };
 */
+
+// ... (otras funciones y definiciones) ...
+
+/**
+ * Obtiene los detalles de una lista de compras específica (completa).
+ * @param {string} listId - El ID de la lista.
+ * @param {string} token - El token de autenticación del usuario.
+ * @returns {Promise<Object>} - Objeto con los detalles de la lista y sus productos.
+ */
+export const fetchListDetailsCompleted = async (listId, token) => {
+  // ✅ Nuevo nombre para evitar confusión con "shopping"
+  if (!listId) {
+    throw new Error("ID da lista é obrigatório para buscar detalhes.");
+  }
+  if (!token) {
+    throw new Error("Token de autenticação não fornecido.");
+  }
+
+  try {
+    // ✅ CORREGIDA LA URL para apuntar a tu endpoint de detalles completos
+    const response = await fetch(
+      `${API_BASE_URL}/lists/completeDetails/${listId}`,
+      {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      }
+    );
+    // ✅ El controlador ya normaliza la data, solo la devolvemos directamente
+    const data = await handleApiResponse(response);
+    return data;
+  } catch (error) {
+    console.error("Error fetching completed list details:", error);
+    throw error;
+  }
+};

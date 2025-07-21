@@ -476,6 +476,7 @@ export const getListCompleteByUserIdListId = async (list_id, user_id) => {
         l.created_at AS fecha_creacion_lista,
         l.is_completed AS lista_completada,
         l.purchased_at AS fecha_compra_lista,
+        li.id_item AS id_item,
         li.product_name AS nombre_producto,
         li.quantity AS cantidad_producto,
         li.price AS precio_unitario,

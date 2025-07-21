@@ -5,7 +5,9 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import LoginPage from "./pages/Auth/LoginPage";
 import PrivateRoute from "./pages/Routes/PrivateRoute"; // ✅ Importa PrivateRoute
 import CreateList from "./pages/CreateList/CreateList";
-import ShoppingList from "./pages/ShoppingList/ShoppingList";
+
+import ListDetailsPage from "./pages/Dashboard/ListDetailsPage";
+import ShoppingListPage from "./pages/ShoppingList/ShoppingListPage";
 
 export default function App() {
   return (
@@ -17,14 +19,9 @@ export default function App() {
       {/* ✅ Forma correcta de anidar rutas protegidas con <Outlet /> */}
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/create-list" element={<CreateList />} />{" "}
-        {/* ✅ Nota el cambio de /createList a /create-list para consistencia */}
-        <Route path="/shopping-list/:listId" element={<ShoppingList />} />{" "}
-        {/* ✅ Usamos :listId para el parámetro */}
-        {/* <Route
-          path="/list/:listId/details"
-          element={<ListDetailsPage />}
-        /> */}
+        <Route path="/createList" element={<CreateList />} />{" "}
+        <Route path="/list/:listId/purchase" element={<ShoppingListPage />} />
+        <Route path="/list/:listId/details" element={<ListDetailsPage />} />
       </Route>
 
       {/* Puedes añadir una ruta de fallback para páginas no encontradas */}

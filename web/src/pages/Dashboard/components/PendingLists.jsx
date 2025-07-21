@@ -12,6 +12,7 @@ import StartShoppingButton from "./StartShoppingButton"; // ✅ Importa el nuevo
  * @param {function} props.onDeleteList - Función para iniciar la eliminación de una lista.
  */
 export default function PendingLists({ listas, onDeleteList }) {
+  console.log("PendingLists props:", listas, onDeleteList);
   return (
     <section className="bg-white p-4 sm:p-6 rounded-lg shadow-md mb-6">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 flex items-center">

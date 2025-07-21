@@ -194,27 +194,47 @@ export const completeList = async (req, res) => {
 
 export const getDetailListCompleted = async (req, res) => {
   const { list_id } = req.params;
-  const userId = req.user.id;
+  const userId = req.user.id; // Asume que req.user está poblado por un middleware de auth
 
   if (!list_id) {
     return res.status(400).json({ message: "list_id requerido" });
   }
 
   try {
-    const list = await getListCompleteByUserIdListId(list_id, userId);
+    const rawListItems = await getListCompleteByUserIdListId(list_id, userId);
 
-    if (list.length === 0) {
-      // Podría ser una lista vacía o que no existe/no pertenece al usuario
-      return res
-        .status(404)
-        .json({ message: "Lista o ítems no encontrados para el usuario." });
+    if (rawListItems.length === 0) {
+      // Si no hay ítems, puede que la lista no exista o no tenga ítems
+      return res.status(404).json({
+        message: "Lista o ítems no encontrados o no pertenecen al usuario.",
+      });
     }
 
-    res.status(200).json(list);
+    // Normalizar la respuesta para el frontend
+    const listDetails = {
+      id: list_id, // Puedes usar el list_id de la URL o el de la primera fila
+      name: rawListItems[0].nombre_de_lista,
+      is_completed: rawListItems[0].lista_completada,
+      created_at: rawListItems[0].fecha_creacion_lista,
+      purchased_at: rawListItems[0].fecha_compra_lista,
+      user_name: rawListItems[0].nombre_usuario,
+      user_email: rawListItems[0].email_usuario,
+      total_products_count: rawListItems[0].cantidad_total_productos_en_lista, // Viene del OVER (PARTITION BY)
+      total_cost: parseFloat(rawListItems[0].precio_total_lista || 0), // Viene del OVER (PARTITION BY)
+      products: rawListItems.map((item) => ({
+        id: item.id_item, // Asume que tu tabla list_items tiene id_item
+        name: item.nombre_producto,
+        quantity: item.cantidad_producto,
+        price: parseFloat(item.precio_unitario || 0), // Asegúrate de que el precio sea un número
+        subtotal: parseFloat(item.subtotal_item) || 0, // Asegúrate de que el subtotal sea un número
+        is_bought: item.producto_comprado,
+      })),
+    };
+
+    res.status(200).json(listDetails);
     console.log(
       "Detalles de la lista obtenidos (en controlador):",
-      list.length,
-      "list."
+      listDetails
     );
   } catch (error) {
     console.error(

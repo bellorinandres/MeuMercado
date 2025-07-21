@@ -20,7 +20,7 @@ import {
 } from "./shoppingService";
 
 export default function ShoppingListPage() {
-  const { id: listId } = useParams();
+  const { listId } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
