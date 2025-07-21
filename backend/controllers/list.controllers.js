@@ -15,11 +15,6 @@ export const createList = async (req, res) => {
   const { name, items } = req.body;
   const userId = req.user.id; // Asumiendo que user ID viene de la autenticación
 
-  // Logs de depuración iniciales (puedes dejarlos o eliminarlos una vez que funcione)
-  console.log("Debug: createList controller called with:");
-  console.log("  user_id:", userId, "Type:", typeof userId);
-  console.log("  name:", name, "Type:", typeof name);
-
   // Validación de entrada
   if (!name || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({
@@ -45,12 +40,10 @@ export const createList = async (req, res) => {
       await conn.rollback(); // ✅ Deshacer la transacción en caso de error
     }
     console.error("Error creating list (controller):", error);
-    res
-      .status(500)
-      .json({
-        message: "Error interno del servidor al crear la lista.",
-        details: error.message,
-      }); // Añadir detalles del error
+    res.status(500).json({
+      message: "Error interno del servidor al crear la lista.",
+      details: error.message,
+    }); // Añadir detalles del error
   } finally {
     if (conn) {
       conn.release(); // ✅ Liberar la conexión SIEMPRE
@@ -89,12 +82,6 @@ export const getListsByUser = async (req, res) => {
 export const getShoppingListDetails = async (req, res) => {
   const { list_id } = req.params;
   const userId = req.user.id;
-  console.log(
-    "Obteniendo detalles de la lista:",
-    list_id,
-    "para usuario:",
-    userId
-  );
 
   if (!list_id) {
     return res.status(400).json({ message: "list_id requerido" });
@@ -122,11 +109,9 @@ export const getShoppingListDetails = async (req, res) => {
       "Error al obtener los detalles de la lista (controlador):",
       error
     );
-    res
-      .status(500)
-      .json({
-        message: "Error interno del servidor al obtener detalles de la lista.",
-      });
+    res.status(500).json({
+      message: "Error interno del servidor al obtener detalles de la lista.",
+    });
   }
 };
 
@@ -163,12 +148,10 @@ export const completeList = async (req, res) => {
   const { items } = req.body; // Array de ítems con sus precios actualizados
 
   if (!Array.isArray(items) || items.length === 0) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "Datos de compra inválidos: 'items' es requerido y debe ser un array no vacío.",
-      });
+    return res.status(400).json({
+      message:
+        "Datos de compra inválidos: 'items' es requerido y debe ser un array no vacío.",
+    });
   }
 
   // Puedes añadir validaciones más específicas para cada ítem si es necesario
@@ -205,5 +188,40 @@ export const completeList = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error interno del servidor al completar la compra." });
+  }
+};
+
+export const getDetailListCompleted = async (req, res) => {
+  const { list_id } = req.params;
+  const userId = req.user.id;
+
+  if (!list_id) {
+    return res.status(400).json({ message: "list_id requerido" });
+  }
+
+  try {
+    const list = await getListItemsByListId(list_id, userId);
+
+    if (list.length === 0) {
+      // Podría ser una lista vacía o que no existe/no pertenece al usuario
+      return res
+        .status(404)
+        .json({ message: "Lista o ítems no encontrados para el usuario." });
+    }
+
+    res.status(200).json(list);
+    console.log(
+      "Detalles de la lista obtenidos (en controlador):",
+      list.length,
+      "items."
+    );
+  } catch (error) {
+    console.error(
+      "Error al obtener los detalles de la lista (controlador):",
+      error
+    );
+    res.status(500).json({
+      message: "Error interno del servidor al obtener detalles de la lista.",
+    });
   }
 };

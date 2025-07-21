@@ -30,7 +30,7 @@ app.use(express.json()); // Middleware para parsear el cuerpo de las solicitudes
 // --- Rutas ---
 app.use("/api/users", userRouter);
 // ✅ Aplicamos verifyToken a todas las rutas de /api/lists
-app.use("/api/lists", verifyToken, listRouter);
+app.use("/api/lists", listRouter);
 // app.use("/api/items", verifyToken, itemRouter); // Descomenta si usas itemRouter y necesitas token
 
 // Ruta de prueba básica para verificar que la API está corriendo

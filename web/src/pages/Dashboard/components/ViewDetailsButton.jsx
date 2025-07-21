@@ -1,4 +1,4 @@
-import React from "react";
+// web/src/pages/Dashboard/components/ViewDetailsButton.jsx
 import { Link } from "react-router-dom";
 
 /**

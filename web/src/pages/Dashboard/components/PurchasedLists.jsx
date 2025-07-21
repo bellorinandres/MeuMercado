@@ -1,6 +1,5 @@
 // web/src/pages/Dashboard/components/PurchasedLists.jsx
-import { Link } from "react-router-dom";
-import ViewDetailsButton from "./ViewDetailsButton";
+import ViewDetailsButton from "../components/ViewDetailsButton";
 
 export default function PurchasedLists({ listas }) {
   const formatCurrency = (amount) => {

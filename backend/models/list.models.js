@@ -463,3 +463,43 @@ export const completeListPurchase = async (listId, userId, items) => {
     }
   }
 };
+
+export const getDetailsByUserIdListID = async (list_id, user_id) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const [rows] = await conn.query(
+      `SELECT
+        u.name AS nombre_usuario,
+        u.email AS email_usuario,
+        l.name_list AS nombre_de_lista,
+        l.created_at AS fecha_creacion_lista,
+        l.is_completed AS lista_completada,
+        l.purchased_at AS fecha_compra_lista,
+        li.product_name AS nombre_producto,
+        li.quantity AS cantidad_producto,
+        li.price AS precio_unitario,
+        (li.quantity * li.price) AS subtotal_item,
+        li.is_bought AS producto_comprado,
+        SUM(li.quantity) OVER (PARTITION BY l.id_list) AS cantidad_total_productos_en_lista,
+        SUM(li.quantity * li.price) OVER (PARTITION BY l.id_list) AS precio_total_lista
+      FROM
+          lists l
+      JOIN
+          users u ON l.id_user = u.id_user
+      JOIN
+          list_items li ON l.id_list = li.id_list
+      WHERE
+          l.id_user = ? AND l.id_list = ?
+      ORDER BY
+          li.id_item;`, // Ensure the list belongs to the user
+      [user_id, list_id]
+    );
+    return rows;
+  } catch (error) {
+    console.error("Error in getDetailListCompleted model:", error);
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+};

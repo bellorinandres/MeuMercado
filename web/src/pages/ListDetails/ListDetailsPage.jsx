@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { fetchShoppingListDetails } from "../../services/listService"; // Para cargar los detalles de la lista
-import BackButton from "../../components/Buttons/BackButton"; // Asumo que tienes este componente
+import BackButton from "../components/Buttons/BackButton";
 
 export default function ListDetailsPage() {
   const { listId } = useParams();

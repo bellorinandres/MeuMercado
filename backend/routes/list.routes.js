@@ -5,6 +5,7 @@ import {
   getShoppingListDetails,
   getListsByUser,
   completeList,
+  getDetailListCompleted,
 } from "../controllers/list.controllers.js";
 
 const listRouter = express.Router();
@@ -14,6 +15,7 @@ listRouter.post("/", createList);
 
 listRouter.get("/:user_id", getListsByUser);
 listRouter.get("/shopping/:list_id", getShoppingListDetails);
+listRouter.get("/completeDetails/:list_id", getDetailListCompleted);
 
 listRouter.delete("/:list_id", deleteList);
 
