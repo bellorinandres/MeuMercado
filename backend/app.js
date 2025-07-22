@@ -2,7 +2,6 @@ import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
-import initDatabase from "./config/db.js";
 
 dotenv.config();
 
@@ -22,25 +21,21 @@ app.use(express.json());
 import userRouter from "./routes/user.routes.js";
 import listRouter from "./routes/list.routes.js";
 import { verifyToken } from "./middlewares/auth.middleware.js";
+import { initDatabase } from "./config/db.js";
 
 app.use("/api/users", userRouter);
 app.use("/api/lists", verifyToken, listRouter);
 
 app.get("/", (req, res) => res.send("ShoppingListMVC API running 🚀"));
 
-// inicializamos la base y arrancamos el servidor
-const start = async () => {
-  try {
-    const pool = await initDatabase();
-    app.locals.db = pool; // opcional para usar el pool en las rutas
-
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`✅ Server listening on http://localhost:${PORT}`);
-    });
-  } catch (err) {
-    console.error("❌ Error inicializando app:", err);
+initDatabase((err) => {
+  if (err) {
+    console.error("❌ Error inicializando base de datos:", err);
     process.exit(1);
   }
-};
 
-start();
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ Server listening on port ${PORT}`);
+    console.log(`✅ Accessible via http://localhost:${PORT}`);
+  });
+});
