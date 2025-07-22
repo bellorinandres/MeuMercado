@@ -13,6 +13,7 @@ app.use(
     origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
   })
 );
+console.log(process.env.FRONTEND_URL);
 
 app.use(morgan("dev"));
 app.use(express.json());
