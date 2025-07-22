@@ -9,6 +9,7 @@ import listRouter from "./routes/list.routes.js";
 import pool from "./config/db.js"; // Asegúrate de que 'pool' se exporte correctamente desde db.js
 import { verifyToken } from "./middlewares/auth.middleware.js";
 import morgan from "morgan";
+import initDatabase from "./config/db.js";
 
 dotenv.config(); // Carga las variables de entorno desde .env
 
