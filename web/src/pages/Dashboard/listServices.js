@@ -64,7 +64,7 @@ const getAuthHeaders = (token) => {
  */
 /* export const fetchShoppingListDetails = async (listId, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists/shopping/${listId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists/shopping/${listId}`, {
       method: "GET",
       headers: getAuthHeaders(token), // ✅ Usar la función auxiliar
     });
@@ -107,7 +107,7 @@ const getAuthHeaders = (token) => {
  */
 export const fetchAllListsByUserId = async (userId, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists/${userId}`, {
       // Revisa esta URL si el userId viene del token
       method: "GET",
       headers: getAuthHeaders(token),
@@ -129,7 +129,7 @@ export const fetchAllListsByUserId = async (userId, token) => {
  */
 export const savePurchase = async (listId, payload, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists/${listId}/complete`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}/complete`, {
       method: "PUT",
       headers: getAuthHeaders(token),
       body: JSON.stringify(payload),
@@ -150,7 +150,7 @@ export const savePurchase = async (listId, payload, token) => {
  */
 export const deleteList = async (listId, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists/${listId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}`, {
       method: "DELETE",
       // Para DELETE, Content-Type a menudo no es necesario en el request, pero el Authorization sí.
       headers: getAuthHeaders(token),
@@ -171,7 +171,7 @@ export const deleteList = async (listId, token) => {
  */
 export const createList = async (listData, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists`, {
       method: "POST",
       headers: getAuthHeaders(token),
       body: JSON.stringify(listData),
@@ -192,7 +192,7 @@ export const createList = async (listData, token) => {
  */
 export const updateList = async (listId, updateData, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists/${listId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}`, {
       method: "PUT",
       headers: getAuthHeaders(token),
       body: JSON.stringify(updateData),
@@ -208,7 +208,7 @@ export const updateList = async (listId, updateData, token) => {
 /*
 export const updateListItem = async (listId, itemId, itemData, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists/${listId}/items/${itemId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}/items/${itemId}`, {
       method: "PUT",
       headers: getAuthHeaders(token),
       body: JSON.stringify(itemData),
@@ -241,7 +241,7 @@ export const fetchListDetailsCompleted = async (listId, token) => {
   try {
     // ✅ CORREGIDA LA URL para apuntar a tu endpoint de detalles completos
     const response = await fetch(
-      `${API_BASE_URL}/lists/completeDetails/${listId}`,
+      `${API_BASE_URL}/api/lists/completeDetails/${listId}`,
       {
         method: "GET",
         headers: getAuthHeaders(token),

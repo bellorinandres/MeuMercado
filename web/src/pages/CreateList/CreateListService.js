@@ -44,7 +44,7 @@ const handleApiResponse = async (response) => {
  */
 export const createList = async (listData, token) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/lists`, {
+    const response = await fetch(`${API_BASE_URL}/api/lists`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

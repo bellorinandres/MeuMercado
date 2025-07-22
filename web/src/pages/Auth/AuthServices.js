@@ -64,7 +64,7 @@ export async function RegisterService(name, email, password) {
  */
 export async function LoginServices(email, password) {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

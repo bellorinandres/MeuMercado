@@ -120,7 +120,6 @@ export const getShoppingListDetails = async (req, res) => {
 export const deleteList = async (req, res) => {
   const { list_id } = req.params;
   const userId = req.user.id;
-
   // Asumo que deleteListById gestiona su propia conexión y transacción interna si la requiere.
   try {
     const deleted = await deleteListById(list_id, userId);

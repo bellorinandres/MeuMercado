@@ -23,7 +23,7 @@ import listRouter from "./routes/list.routes.js";
 import { verifyToken } from "./middlewares/auth.middleware.js";
 import { initDatabase } from "./config/db.js";
 
-app.use("/api/users", userRouter);
+app.use("/api/api/users", userRouter);
 app.use("/api/lists", verifyToken, listRouter);
 
 app.get("/", (req, res) => res.send("ShoppingListMVC API running 🚀"));
