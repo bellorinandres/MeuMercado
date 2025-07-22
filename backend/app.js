@@ -11,12 +11,18 @@ const PORT = process.env.PORT || 3000;
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 console.log(process.env.FRONTEND_URL);
 
 app.use(morgan("dev"));
 app.use(express.json());
+
+app.get("/api/test-cors", (req, res) => {
+  res.json({ message: "Backend y CORS funcionando ✅" });
+});
 
 // tus rutas…
 import userRouter from "./routes/user.routes.js";
