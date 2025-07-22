@@ -53,24 +53,15 @@ app.get("/db-test", async (req, res) => {
 // --- Inicio del Servidor ---
 // ✅ Escuchar en '0.0.0.0' para ser accesible desde otras IPs en la red local.
 // Si no se especifica host, Express a menudo usa 0.0.0.0 por defecto, pero es mejor ser explícito.
-app.listen(PORT, "0.0.0.0", () => {
-  // ✅ Cambio aquí para escuchar en todas las interfaces
-  console.log(`✅ Server listening on port ${PORT}`);
-  console.log(`✅ Accessible via http://localhost:${PORT}`);
-  // Para acceder desde otros dispositivos en la misma red, usa la IP de tu máquina:
-  console.log(`✅ Accessible from network: http://192.168.1.7:${PORT} `);
-
-  // Prueba la conexión a la base de datos al arrancar
-  pool
-    .query("SELECT NOW() AS now")
-    .then(([rows]) => {
-      console.log(
-        `✅ Conectado a la base de datos. Hora del servidor DB: ${rows[0].now}`
-      );
-    })
-    .catch((err) => {
-      console.error("❌ Error al conectar a la base de datos:", err.message);
-      // Opcional: Salir del proceso si la conexión a la DB es crítica al inicio
-      // process.exit(1);
+initDatabase()
+  .then((pool) => {
+    app.locals.db = pool; // opcional: guardar pool en app.locals
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`✅ Server listening on port ${PORT}`);
+      console.log(`✅ Accessible via http://localhost:${PORT}`);
     });
-});
+  })
+  .catch((err) => {
+    console.error("❌ Error inicializando la base de datos:", err);
+    process.exit(1);
+  });
