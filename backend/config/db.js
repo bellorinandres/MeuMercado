@@ -1,14 +1,15 @@
-import mysql from "mysql2/promise";
-import dotenv from "dotenv";
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 const { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } = process.env;
 
-async function initDatabase() {
-  console.log("⏳ Verificando base de datos…");
+// Esta función inicializa la base y devuelve el pool
+export async function initDatabase() {
+  console.log('⏳ Verificando base de datos…');
 
-  // Conexión inicial SIN base seleccionada
+  // Conexión inicial SIN DB para crearla si no existe
   const connection = await mysql.createConnection({
     host: DB_HOST,
     user: DB_USER,
@@ -16,13 +17,12 @@ async function initDatabase() {
     port: DB_PORT || 3306,
   });
 
-  // Crear base si no existe
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
   console.log(`✅ Base de datos '${DB_NAME}' lista.`);
 
   await connection.end();
 
-  // Conectar al pool apuntando a la base
+  // Creamos pool apuntando a la base
   const pool = mysql.createPool({
     host: DB_HOST,
     user: DB_USER,
@@ -34,15 +34,14 @@ async function initDatabase() {
     queueLimit: 0,
   });
 
-  // Crear tablas si no existen
+  // Creamos tablas
   await createTables(pool);
 
+  console.log('✅ Tablas listas.');
   return pool;
 }
 
 async function createTables(pool) {
-  console.log("⏳ Verificando tablas…");
-
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id_user INT AUTO_INCREMENT PRIMARY KEY,
@@ -75,8 +74,6 @@ async function createTables(pool) {
       FOREIGN KEY (id_list) REFERENCES lists(id_list)
     )
   `);
-
-  console.log("✅ Tablas listas.");
 }
 
 export default initDatabase;

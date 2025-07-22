@@ -1,68 +1,46 @@
-// ShoppingListMVC Backend API
-// Este archivo es el punto de entrada de la aplicación Express.
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
-import userRouter from "./routes/user.routes.js";
-import listRouter from "./routes/list.routes.js";
-// import itemRouter from "./routes/item.routes.js"; // Si no lo usas, puedes comentarlo o eliminarlo
-import pool from "./config/db.js"; // Asegúrate de que 'pool' se exporte correctamente desde db.js
-import { verifyToken } from "./middlewares/auth.middleware.js";
 import morgan from "morgan";
+import cors from "cors";
 import initDatabase from "./config/db.js";
 
-dotenv.config(); // Carga las variables de entorno desde .env
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- Middlewares ---
-
-// ✅ Configuración de CORS: Permite que tu API sea accesible desde otros orígenes
-// Es crucial para que el frontend (especialmente desde otra IP/dispositivo) pueda comunicarse.
 app.use(
   cors({
-    origin: "*", // abierto para todos
+    origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
   })
 );
-app.use(morgan("dev")); // Middleware para logs de peticiones en consola (útil en desarrollo)
-app.use(express.json()); // Middleware para parsear el cuerpo de las solicitudes JSON
 
-// --- Rutas ---
+app.use(morgan("dev"));
+app.use(express.json());
+
+// tus rutas…
+import userRouter from "./routes/user.routes.js";
+import listRouter from "./routes/list.routes.js";
+import { verifyToken } from "./middlewares/auth.middleware.js";
+
 app.use("/api/users", userRouter);
-// ✅ Aplicamos verifyToken a todas las rutas de /api/lists
 app.use("/api/lists", verifyToken, listRouter);
-// app.use("/api/items", verifyToken, itemRouter); // Descomenta si usas itemRouter y necesitas token
 
-// Ruta de prueba básica para verificar que la API está corriendo
-app.get("/", (req, res) => {
-  res.send("ShoppingListMVC API running 🚀");
-});
+app.get("/", (req, res) => res.send("ShoppingListMVC API running 🚀"));
 
-// Ruta de prueba para verificar la conexión a la base de datos
-app.get("/db-test", async (req, res) => {
+// inicializamos la base y arrancamos el servidor
+const start = async () => {
   try {
-    // Usar 'pool' para la consulta, no 'db' (que no está definido aquí)
-    const [rows] = await pool.query("SELECT NOW() AS now");
-    res.json({ dbTime: rows[0].now });
-  } catch (err) {
-    console.error("Error en /db-test:", err);
-    res.status(500).send("DB connection failed");
-  }
-});
+    const pool = await initDatabase();
+    app.locals.db = pool; // opcional para usar el pool en las rutas
 
-// --- Inicio del Servidor ---
-// ✅ Escuchar en '0.0.0.0' para ser accesible desde otras IPs en la red local.
-// Si no se especifica host, Express a menudo usa 0.0.0.0 por defecto, pero es mejor ser explícito.
-initDatabase()
-  .then((pool) => {
-    app.locals.db = pool; // opcional: guardar pool en app.locals
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`✅ Server listening on port ${PORT}`);
-      console.log(`✅ Accessible via http://localhost:${PORT}`);
+      console.log(`✅ Server listening on http://localhost:${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("❌ Error inicializando la base de datos:", err);
+  } catch (err) {
+    console.error("❌ Error inicializando app:", err);
     process.exit(1);
-  });
+  }
+};
+
+start();
