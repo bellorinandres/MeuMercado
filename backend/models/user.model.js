@@ -16,12 +16,30 @@ export const findUserById = async (id) => {
 };
 
 export const insertUser = async (name, email, password) => {
-  const hash = await bcrypt.hash(password, 10);
-  const [result] = await pool.query(
-    "INSERT INTO users (name, email, pass_hash) VALUES (?, ?, ?)",
-    [name, email, hash]
-  );
-  return result;
+  try {
+    const hash = await bcrypt.hash(password, 10);
+
+    const [result] = await pool.query(
+      `INSERT INTO users (name, email, pass_hash) VALUES (?, ?, ?)`,
+      [name, email, hash]
+    );
+
+    return {
+      success: true,
+      insertId: result.insertId,
+    };
+  } catch (err) {
+    // Puedes decidir lanzar el error o devolver un objeto con error
+    if (err.code === "ER_DUP_ENTRY") {
+      return {
+        success: false,
+        error: "Email already registered",
+      };
+    }
+
+    console.error("🔥 Error in insertUser:", err);
+    throw err;
+  }
 };
 
 export const findUserByEmail = async (email) => {

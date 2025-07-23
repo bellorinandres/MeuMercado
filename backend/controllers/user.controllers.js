@@ -33,9 +33,21 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
     const result = await insertUser(name, email, password);
+
     res.status(201).json({ id: result.insertId, name, email });
   } catch (err) {
+    console.error("🔥 Error in createUser:", err);
     res.status(500).json({ error: err.message });
   }
 };
