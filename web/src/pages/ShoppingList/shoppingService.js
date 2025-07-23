@@ -87,7 +87,7 @@ async function apiRequest(url, method = "GET", token, body = null) {
 export async function getShoppingListDetails(listId, token) {
   try {
     const rawData = await apiRequest(
-      `api/lists/shopping/${listId}`,
+      `/api/lists/shopping/${listId}`,
       "GET",
       token
     );
@@ -131,7 +131,7 @@ export async function getShoppingListDetails(listId, token) {
 export async function completeShoppingList(listId, payload, token) {
   try {
     const response = await apiRequest(
-      `api/lists/${listId}/complete`,
+      `/api/lists/${listId}/complete`,
       "PUT",
       token,
       payload
@@ -154,7 +154,7 @@ export async function completeShoppingList(listId, payload, token) {
  */
 export async function createList(listData, token) {
   try {
-    const response = await apiRequest("/lists", "POST", token, listData);
+    const response = await apiRequest("/api/lists", "POST", token, listData);
     return response;
   } catch (error) {
     console.error("Error creating list:", error);
@@ -172,7 +172,7 @@ export async function createList(listData, token) {
  */
 export async function deleteList(listId, token) {
   try {
-    const response = await apiRequest(`api/lists/${listId}`, "DELETE", token);
+    const response = await apiRequest(`/api/lists/${listId}`, "DELETE", token);
     return response; // Será null para 204 No Content
   } catch (error) {
     console.error("Error deleting list:", error);
@@ -190,13 +190,13 @@ export async function deleteList(listId, token) {
  */
 export async function getPendingLists(token) {
   // Ajusta la URL si tu backend requiere el user_id en la ruta
-  // Si tu ruta es `/api/lists/pending` y el backend usa req.user.id del token, no necesitas user_id aquí.
-  // Si es `/api/lists/user/:userId/pending`, necesitarías pasar el userId aquí.
+  // Si tu ruta es `//api/lists/pending` y el backend usa req.user.id del token, no necesitas user_id aquí.
+  // Si es `//api/lists/user/:userId/pending`, necesitarías pasar el userId aquí.
   // Basado en tu `list.controllers.js`, `getPendingListsByUserId` toma user_id de `req.params`,
   // pero `getListsByUser` la usa. Asegúrate de que tu ruta API coincida.
   // Asumiendo que usarás una ruta donde el user_id viene del token, como en `/lists/pending`
   try {
-    const response = await apiRequest(`api/lists/pending`, "GET", token);
+    const response = await apiRequest(`/api/lists/pending`, "GET", token);
     return response;
   } catch (error) {
     console.error("Error fetching pending lists:", error);
@@ -214,7 +214,7 @@ export async function getPendingLists(token) {
 export async function getPurchasedLists(token) {
   // Similar a getPendingLists, asumiendo que el backend usa el user_id del token.
   try {
-    const response = await apiRequest(`api/lists/purchased`, "GET", token);
+    const response = await apiRequest(`/api/lists/purchased`, "GET", token);
     return response;
   } catch (error) {
     console.error("Error fetching purchased lists:", error);
