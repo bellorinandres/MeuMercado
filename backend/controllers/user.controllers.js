@@ -50,8 +50,7 @@ export const createUser = async (req, res) => {
     console.error("🔥 Error in createUser:", err);
     res.status(500).json({ error: err.message });
   }
-};
-
+p
 export const loginUser = async (req, res) => {
   const { email, password } = req.validatedData;
 

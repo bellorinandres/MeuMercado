@@ -6,7 +6,6 @@ const API_BASE_URL =
 // Si usas Create React App (CRA) en lugar de Vite, descomenta la siguiente línea y comenta la de arriba:
 // const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api";
 
-
 /**
  * Función genérica para manejar las solicitudes HTTP.
  * Incluye el manejo de autenticación (token) y errores comunes.
@@ -87,7 +86,11 @@ async function apiRequest(url, method = "GET", token, body = null) {
  */
 export async function getShoppingListDetails(listId, token) {
   try {
-    const rawData = await apiRequest(`/lists/shopping/${listId}`, "GET", token);
+    const rawData = await apiRequest(
+      `api/lists/shopping/${listId}`,
+      "GET",
+      token
+    );
 
     // Si el backend devuelve un array vacío, o null, significa que no hay datos para esa lista/usuario
     if (!rawData || rawData.length === 0) {
@@ -128,7 +131,7 @@ export async function getShoppingListDetails(listId, token) {
 export async function completeShoppingList(listId, payload, token) {
   try {
     const response = await apiRequest(
-      `/lists/${listId}/complete`,
+      `api/lists/${listId}/complete`,
       "PUT",
       token,
       payload
@@ -169,7 +172,7 @@ export async function createList(listData, token) {
  */
 export async function deleteList(listId, token) {
   try {
-    const response = await apiRequest(`/lists/${listId}`, "DELETE", token);
+    const response = await apiRequest(`api/lists/${listId}`, "DELETE", token);
     return response; // Será null para 204 No Content
   } catch (error) {
     console.error("Error deleting list:", error);
@@ -193,7 +196,7 @@ export async function getPendingLists(token) {
   // pero `getListsByUser` la usa. Asegúrate de que tu ruta API coincida.
   // Asumiendo que usarás una ruta donde el user_id viene del token, como en `/lists/pending`
   try {
-    const response = await apiRequest(`/lists/pending`, "GET", token);
+    const response = await apiRequest(`api/lists/pending`, "GET", token);
     return response;
   } catch (error) {
     console.error("Error fetching pending lists:", error);
@@ -211,7 +214,7 @@ export async function getPendingLists(token) {
 export async function getPurchasedLists(token) {
   // Similar a getPendingLists, asumiendo que el backend usa el user_id del token.
   try {
-    const response = await apiRequest(`/lists/purchased`, "GET", token);
+    const response = await apiRequest(`api/lists/purchased`, "GET", token);
     return response;
   } catch (error) {
     console.error("Error fetching purchased lists:", error);
