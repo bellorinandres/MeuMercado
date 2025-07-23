@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:5173"],
+    origin: [process.env.FRONTEND_URL, "http://localhost:5173/"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -30,7 +30,7 @@ import listRouter from "./routes/list.routes.js";
 import { verifyToken } from "./middlewares/auth.middleware.js";
 import { initDatabase } from "./config/db.js";
 
-app.use("/api/api/users", userRouter);
+app.use("/api/users", userRouter);
 app.use("/api/lists", verifyToken, listRouter);
 
 app.get("/", (req, res) => res.send("ShoppingListMVC API running 🚀"));
@@ -45,4 +45,8 @@ initDatabase((err) => {
     console.log(`✅ Server listening on port ${PORT}`);
     console.log(`✅ Accessible via http://localhost:${PORT}`);
   });
+});
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server listening on port ${PORT}`);
+  console.log(`✅ Accessible via http://localhost:${PORT}`);
 });

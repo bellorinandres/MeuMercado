@@ -2,7 +2,7 @@
 
 // ✅ Reutilizamos la misma variable de entorno para la URL base de la API
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
   console.log(import.meta.env.VITE_API_BASE_URL);
 
 // Si usas Create React App (CRA) en lugar de Vite, descomenta la siguiente línea y comenta la de arriba:
