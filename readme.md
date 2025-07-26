@@ -3,6 +3,7 @@
 **Tu asistente personal para crear y organizar tus listas de compras de forma fácil e inteligente.**  
 Actualmente en desarrollo.
 
+MVP: https://meu-mercado-rho.vercel.app/
 ---
 
 ## 📋 Descripción
@@ -17,7 +18,7 @@ El objetivo a mediano plazo es convertirla en una **Progressive Web App (PWA)** 
 - **Frontend:** React
 - **Backend:** Node.js + Express
 - **Base de datos:** MySQL
-- **Otros:** (pendiente añadir JWT, validación de correo, etc.)
+- **Otros:** ( validación de correo, etc.)
 - **Licencia:** MIT
 
 ---
@@ -28,7 +29,6 @@ MeuMercado/
 ├── backend/ # API REST en Node.js + Express
 ├── web/ # Frontend en React
 ├── doc/ # Documentación del proyecto
-
 
 ---
 
@@ -53,6 +53,7 @@ npm run dev
 
 Luego abre tu navegador en http://localhost:3000 para acceder a la interfaz web.
 ```
+
 📌 Estado del proyecto
 🔷 Actualmente en desarrollo.
 🔷 Próximas características previstas:
@@ -72,4 +73,3 @@ Desarrollado por Andres Bellorin.
 Este proyecto está bajo la licencia MIT. Consulta el archivo LICENSE para más información.
 
 ---
-
