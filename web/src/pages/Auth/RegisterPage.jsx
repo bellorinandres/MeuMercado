@@ -6,20 +6,34 @@ import { Link, useNavigate } from "react-router-dom";
 import BackToLanding from "./components/BackToLanding";
 import { RegisterService } from "./AuthServices";
 
-const schema = z.object({
-  name: z.string().min(1, "Nombre obligatorio"),
-  email: z.string().email("Correo inválido"),
-  password: z.string().min(6, "Mínimo 6 caracteres"),
-});
+const schema = z
+  .object({
+    name: z.string().min(1, "Nombre obligatorio"),
+    email: z.string().email("Correo inválido"),
+    password: z
+      .string()
+      .min(6, "Mínimo 6 caracteres")
+      .regex(/[a-z]/, "Debe tener una letra minúscula")
+      .regex(/[A-Z]/, "Debe tener una letra mayúscula")
+      .regex(/[0-9]/, "Debe tener un número")
+      .regex(/[^a-zA-Z0-9]/, "Debe tener un carácter especial"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+  });
 
 export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm({
     resolver: zodResolver(schema),
+    mode: "onChange", // para que valide mientras escribes
   });
+
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -81,9 +95,34 @@ export default function RegisterPage() {
               <p className="text-red-500 text-sm">{errors.password.message}</p>
             )}
           </div>
+          <label className="text-sm text-gray-600 block mb-1">
+            La contraseña debe tener al menos:
+            <ul className="list-disc ml-5 text-xs mt-1 text-gray-500">
+              <li>6 caracteres</li>
+              <li>1 letra mayúscula</li>
+              <li>1 letra minúscula</li>
+              <li>1 número</li>
+              <li>1 carácter especial</li>
+            </ul>
+          </label>
+          <div>
+            <input
+              type="password"
+              placeholder="Confirmar Contraseña"
+              {...register("confirmPassword")}
+              className="appearance-none w-full px-3 py-2 border rounded-md text-sm"
+              autoComplete="new-password"
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !isValid}
             className="w-full py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
             {isLoading ? "Cargando..." : "Registrarse"}
