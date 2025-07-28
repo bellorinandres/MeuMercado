@@ -1,41 +1,35 @@
 import { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-
-// ✅ Manteniendo tu import original, asumiendo que listServices.js está en la misma carpeta
 import { fetchListDetailsCompleted } from "./listServices";
 import BackButton from "../components/Buttons/BackButton";
 
 export default function ListDetailsPage() {
   const { listId } = useParams();
   const { user } = useContext(AuthContext);
-
   const [listDetails, setListDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const getListDetails = async () => {
-      // 1. Verificar autenticación primero
       if (!user || !user.token) {
         setError("Você não está autenticado(a). Por favor, faça login.");
         setIsLoading(false);
-        setListDetails(null); // Asegura que no se muestre data vieja o se intente desestructurar
+        setListDetails(null);
         return;
       }
-
       setIsLoading(true);
-      setError(null); // Limpia errores anteriores en cada intento de carga
-      setListDetails(null); // Asegura que listDetails sea null mientras carga, para evitar flickering de data vieja.
+      setError(null);
+      setListDetails(null);
 
       try {
         const data = await fetchListDetailsCompleted(listId, user.token);
-
-        setListDetails(data); // 'data' ya está en el formato final esperado
+        setListDetails(data);
       } catch (err) {
         console.error("Erro ao buscar detalhes da lista:", err);
         setError(err.message || "Erro ao carregar os detalhes da lista.");
-        setListDetails(null); // Asegura que sea null en caso de error para que se muestre el mensaje de "Lista no encontrada" o similar
+        setListDetails(null);
       } finally {
         setIsLoading(false);
       }
@@ -43,8 +37,6 @@ export default function ListDetailsPage() {
 
     getListDetails();
   }, [listId, user]);
-
-  // --- Bloques de renderizado condicional completos ---
 
   if (isLoading) {
     return (
@@ -63,7 +55,6 @@ export default function ListDetailsPage() {
     );
   }
 
-  // ✅ Esto es CRUCIAL: Solo intenta desestructurar si listDetails NO es null
   if (!listDetails) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
@@ -73,7 +64,6 @@ export default function ListDetailsPage() {
     );
   }
 
-  // Si llegamos aquí, listDetails definitivamente no es null, por lo que es seguro desestructurar
   const {
     name,
     products,
@@ -83,6 +73,16 @@ export default function ListDetailsPage() {
     user_name,
     created_at,
   } = listDetails;
+
+  // Filtrar produtos comprados e com preço válido
+  const purchasedProductsWithPrice = products.filter(
+    (product) => product.is_bought && parseFloat(product.price) > 0
+  );
+
+  // Filtrar produtos que não foram comprados OU estão com preço 0
+  const pendingProducts = products.filter(
+    (product) => !product.is_bought || parseFloat(product.price) === 0
+  );
 
   return (
     <div className="bg-gray-100 min-h-screen py-6 px-4 sm:px-6 lg:px-8">
@@ -116,12 +116,13 @@ export default function ListDetailsPage() {
           )}
         </div>
 
+        {/* --- Produtos Comprados --- */}
         <h3 className="text-xl font-semibold text-gray-700 mb-4">
-          Produtos na Lista
+          Produtos Comprados
         </h3>
-        {products && products.length > 0 ? (
+        {purchasedProductsWithPrice && purchasedProductsWithPrice.length > 0 ? (
           <ul className="space-y-2">
-            {products.map((product) => (
+            {purchasedProductsWithPrice.map((product) => (
               <li
                 key={product.id}
                 className="p-3 border border-gray-200 rounded-md flex justify-between items-center"
@@ -129,23 +130,18 @@ export default function ListDetailsPage() {
                 <div>
                   <p className="font-medium text-gray-800">{product.name}</p>
                   <p className="text-sm text-gray-600">
-                    Cantidad: {product.quantity}
+                    Quantidade: {product.quantity}
                   </p>
-                  {/* ✅ APLICA parseFloat AQUÍ para product.price */}
-                  {product.price &&
-                    parseFloat(product.price) > 0 && ( // Verifica que exista antes de parsear y que sea > 0
-                      <p className="text-sm text-gray-600">
-                        Preço unitário: R${" "}
-                        {parseFloat(product.price).toFixed(2)}
-                      </p>
-                    )}
-                  {/* ✅ APLICA parseFloat AQUÍ para product.subtotal */}
-                  {product.subtotal &&
-                    parseFloat(product.subtotal) > 0 && ( // Verifica que exista antes de parsear y que sea > 0
-                      <p className="text-sm text-gray-600">
-                        Subtotal: R$ {parseFloat(product.subtotal).toFixed(2)}
-                      </p>
-                    )}
+                  {product.price && parseFloat(product.price) > 0 && (
+                    <p className="text-sm text-gray-600">
+                      Preço unitário: R$ {parseFloat(product.price).toFixed(2)}
+                    </p>
+                  )}
+                  {product.subtotal && parseFloat(product.subtotal) > 0 && (
+                    <p className="text-sm text-gray-600">
+                      Subtotal: R$ {parseFloat(product.subtotal).toFixed(2)}
+                    </p>
+                  )}
                   {typeof product.is_bought === "boolean" && (
                     <p
                       className={`text-xs font-semibold ${
@@ -160,18 +156,55 @@ export default function ListDetailsPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500">Nenhum produto nesta lista.</p>
+          <p className="text-gray-500">
+            Nenhum produto comprado com preço válido nesta lista.
+          </p>
         )}
 
-        {/* ✅ APLICA parseFloat AQUÍ para total_cost */}
-        {total_cost &&
-          parseFloat(total_cost) > 0 && ( // Verifica que exista antes de parsear y que sea > 0
-            <div className="mt-6 p-4 bg-blue-50 rounded-md text-blue-800 font-bold">
-              <p>
-                Custo Total da Lista: R$ {parseFloat(total_cost).toFixed(2)}
-              </p>
-            </div>
-          )}
+        {/* --- Produtos Pendentes/Não Comprados --- */}
+        {pendingProducts && pendingProducts.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-orange-600 mb-2">
+              Produtos Pendentes ou sem Preço
+            </h3>
+            <ul className="space-y-2">
+              {pendingProducts.map((product) => (
+                <li
+                  key={`pending-${product.id}`}
+                  className="p-3 border border-orange-200 rounded-md bg-orange-50"
+                >
+                  <div>
+                    {" "}
+                    {/* Agregamos un div para mantener la estructura */}
+                    <p className="font-medium text-orange-800">
+                      {product.name}
+                    </p>
+                    <p className="text-sm text-orange-700">
+                      Quantidade: {product.quantity}
+                    </p>
+                    {typeof product.is_bought === "boolean" && (
+                      <p
+                        className={`text-xs font-semibold ${
+                          product.is_bought
+                            ? "text-green-600"
+                            : "text-orange-500"
+                        }`}
+                      >
+                        {product.is_bought ? "Comprado" : "Pendente"}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {total_cost && parseFloat(total_cost) > 0 && (
+          <div className="mt-6 p-4 bg-blue-50 rounded-md text-blue-800 font-bold">
+            <p>Custo Total da Lista: R$ {parseFloat(total_cost).toFixed(2)}</p>
+          </div>
+        )}
       </div>
     </div>
   );

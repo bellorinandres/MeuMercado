@@ -200,40 +200,24 @@ export const getPendingListsByUserId = async (user_id) => {
   try {
     conn = await pool.getConnection();
     const [rows] = await conn.query(
-      `SELECT id_list, name_list, created_at
-       FROM lists
-       WHERE id_user = ? AND is_completed = 0`,
+      `SELECT
+            l.id_list,
+            l.name_list,
+            l.created_at,
+            COUNT(li.id_item) AS product_count -- Contamos los ítems en la tabla list_items
+        FROM
+            lists l
+        LEFT JOIN
+            list_items li ON l.id_list = li.id_list -- Unimos 'lists' con 'list_items' usando 'id_list'
+        WHERE
+            l.id_user = ? AND l.is_completed = 0
+        GROUP BY
+            l.id_list, l.name_list, l.created_at`,
       [user_id]
     );
     return rows;
   } catch (error) {
     console.error("Error in getPendingListsByUserId model:", error);
-    throw error;
-  } finally {
-    if (conn) conn.release();
-  }
-};
-
-/**
- * Counts the total number of items in a specific list.
- *
- * Cuenta el número total de ítems en una lista específica.
- *
- * @param {number} list_id - The ID of the list.
- * @returns {Promise<number>} The count of items in the list.
- * @throws {Error} If there is a database error.
- */
-export const countItemsInList = async (list_id) => {
-  let conn;
-  try {
-    conn = await pool.getConnection();
-    const [rows] = await conn.query(
-      `SELECT COUNT(*) as count FROM list_items WHERE id_list = ?`,
-      [list_id]
-    );
-    return rows[0].count;
-  } catch (error) {
-    console.error("Error in countItemsInList model:", error);
     throw error;
   } finally {
     if (conn) conn.release();
