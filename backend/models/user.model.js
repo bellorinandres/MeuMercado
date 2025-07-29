@@ -78,3 +78,45 @@ export const findUserByEmail = async (email) => {
   ]);
   return rows[0];
 };
+
+export const createUserSettings = async (id_user, language, currency) => { // Renamed parameter for clarity
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO user_settings (id_user, language, currency) VALUES (?, ?, ?)`,
+      [id_user, language, currency]
+    );
+
+    // If the insert was successful, affectedRows will be 1
+    if (result.affectedRows > 0) {
+      return {
+        success: true,
+        message: "User settings created successfully.",
+        id: id_user // Optionally return the ID for confirmation
+      };
+    } else {
+      // This case is unlikely for a simple INSERT if no error was thrown,
+      // but it's good for robustness if the DB reports 0 affected rows.
+      return {
+        success: false,
+        message: "Failed to create user settings (no rows affected)."
+      };
+    }
+  } catch (err) {
+    // Check for duplicate entry error specifically
+    if (err.code === "ER_DUP_ENTRY") {
+      console.warn(`Attempted to create duplicate settings for user ID: ${id_user}`);
+      return {
+        success: false,
+        message: "User settings for this ID already exist.",
+        code: "DUPLICATE_ENTRY" // Provide a custom error code for easier handling
+      };
+    }
+
+    // Log the error for debugging purposes
+    console.error("🔥 Error in createUserSettings:", err);
+
+    // Re-throw the error for all other types of errors
+    // This allows the calling controller to catch and handle unexpected database issues (e.g., connection issues, syntax errors)
+    throw err;
+  }
+};
