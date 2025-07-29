@@ -60,6 +60,17 @@ async function createTables() {
       FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE
     );
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS
+    user_settings (
+        id_user_setting INT AUTO_INCREMENT PRIMARY KEY,
+        id_user INT NOT NULL,
+        language VARCHAR(10) NOT NULL,
+        currency VARCHAR(5) NOT NULL,
+        FOREIGN KEY (id_user) REFERENCES users (id_user) ON DELETE CASCADE,
+        UNIQUE (id_user) -- ¡Esta restricción es clave!
+    );;
+  `);
 }
 
 export async function initDatabase() {

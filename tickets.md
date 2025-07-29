@@ -10,9 +10,9 @@ Ayuda con las tareas pendientes y mejoras para la plataforma MeuMercado.
 
 ## Registro y Login
 
-- [ ] Register > Colocar que sean dos contraseñas identicas y asegurarte de que sean seguras.
-- [ ] Register > Poder buscar una forma validar el correo electronico con un código de verificación.
-      Login > Colocar que el usuario pueda recuperar su contraseña en caso de que la haya olvidado con algun codigo de verificacion.
+- [ x] Register > Colocar que sean dos contraseñas identicas y asegurarte de que sean seguras.
+- [ x] Register > Poder buscar una forma validar el correo electronico con un código de verificación.
+- [ ] Login > Colocar que el usuario pueda recuperar su contraseña en caso de que la haya olvidado con algun codigo de verificacion.
 
 ## Dashboard
 
@@ -21,9 +21,9 @@ Ayuda con las tareas pendientes y mejoras para la plataforma MeuMercado.
 
 ## Dashboard/ShoppingPage
 
-- [ ] Dashboard/Shopping > Mejorar la Experiencia al momento de colocar los precios! (Colocar un placeholder con el 0.00 y que se pueda cambiar el valor, no tener que borrar el 0.00)
-- [ ] Dashboard/Shopping > No guardar los precios que no tengan un valor, no guardar los precios que tengan un 0.00
-- [ ] Dashboard/Shopping > Colocar un Modal para poder agregar un producto nuevo al carrito sin que haya estado en la lista y guardarlo en la base de datos.
+- [ x] Dashboard/Shopping > Mejorar la Experiencia al momento de colocar los precios! (Colocar un placeholder con el 0.00 y que se pueda cambiar el valor, no tener que borrar el 0.00)
+- [ x] Dashboard/Shopping > No guardar los precios que no tengan un valor, no guardar los precios que tengan un 0.00
+- [x ] Dashboard/Shopping > Colocar un Modal para poder agregar un producto nuevo al carrito sin que haya estado en la lista y guardarlo en la base de datos.
 - [ ] Dashboard/Shopping > Poder modificar las cantidades de los productos que ya estan en el carrito.
 - [ ] Dashboard/Shopping > Poder eliminar los productos del carrito.
 

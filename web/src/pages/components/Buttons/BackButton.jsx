@@ -1,5 +1,5 @@
 // web/src/components/BackButton.jsx
-import React from "react";
+
 import { useNavigate } from "react-router-dom";
 
 export default function BackButton({
@@ -11,7 +11,7 @@ export default function BackButton({
 
   const handleClick = () => {
     if (typeof to === "number") {
-      navigate(to); // Navega hacia atrás en el historial (ej: -1)
+      navigate("/dashboard"); // Navega hacia atrás en el historial (ej: -1)
     } else {
       navigate(to); // Navega a una ruta específica (ej: "/dashboard")
     }

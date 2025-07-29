@@ -184,7 +184,7 @@ export default function ShoppingListPage() {
       // Si el backend puede manejar ítems nuevos sin ID, puedes enviar todos
       // o filtrar los temporales (ej. .filter(p => !p.id.startsWith('new-')))
       items: products.map((p) => ({
-        id: p.id.startsWith("new-") ? undefined : p.id, // No enviar IDs temporales al backend
+        id: String(p.id).startsWith("new-") ? undefined : p.id,
         name: p.name,
         quantity: p.quantity,
         price: parseFloat(p.price),
@@ -193,7 +193,7 @@ export default function ShoppingListPage() {
       status: "completed",
     };
 
-    // console.log("Payload para guardar compra:", payload); // Puedes dejar este console.log para depuración
+    console.log("Payload para guardar compra:", payload); // Puedes dejar este console.log para depuración
 
     setLoading(true); // Muestra el estado de carga al guardar
     try {
@@ -229,7 +229,7 @@ export default function ShoppingListPage() {
           <div className="space-y-4 max-h-[calc(100vh-320px)] overflow-y-auto pr-2 pb-2">
             {products.map((product) => (
               <ProductPriceInput
-                key={product.id}
+                key={String(product.id)}
                 product={product}
                 onPriceChange={handlePriceChange}
               />

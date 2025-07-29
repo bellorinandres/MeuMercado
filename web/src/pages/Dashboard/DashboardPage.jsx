@@ -19,7 +19,7 @@ export default function DashboardPage() {
     purchasedListsByMonth,
     isLoading,
     error,
-    loadLists, // <-- Importante para cargar las listas
+    loadLists,
     handleDeleteList,
   } = useLists(user, logout);
 
