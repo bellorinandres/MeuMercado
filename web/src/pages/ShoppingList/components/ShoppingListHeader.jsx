@@ -1,4 +1,4 @@
-import BackButton from "../components/Buttons/BackButton";
+import BackButton from "../../components/Buttons/BackButton";
 
 export default function ShoppingListHeader({ title }) {
   return (
