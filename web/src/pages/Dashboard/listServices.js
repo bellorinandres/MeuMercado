@@ -1,49 +1,55 @@
 // src/services/listService.js
 
-// ✅ Define la URL base de tu API usando la variable de entorno de Vite
+// Define la URL base de tu API usando la variable de entorno de Vite.
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
-// Si usas Create React App (CRA), descomenta la siguiente línea y comenta la de arriba:
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api";
-
 /**
- * Función auxiliar para manejar las respuestas de la API.
- * Centraliza la lógica de verificación de errores y parseo de JSON.
+ * Función auxiliar para procesar las respuestas de la API.
+ * Centraliza el manejo de errores y el parseo de JSON.
  * @param {Response} response - El objeto Response de la llamada a `fetch`.
- * @returns {Promise<any>} - La respuesta JSON parseada o un objeto vacío si no hay contenido.
+ * @returns {Promise<any>} - La respuesta JSON parseada o un objeto vacío si no hay contenido JSON.
  * @throws {Error} - Lanza un error si la respuesta no es exitosa (status >= 400).
  */
 const handleApiResponse = async (response) => {
   if (!response.ok) {
     let errorData = {};
     const contentType = response.headers.get("content-type");
+
+    // Intenta parsear la respuesta de error como JSON si el tipo de contenido lo indica
     if (contentType && contentType.includes("application/json")) {
       errorData = await response.json().catch((e) => {
-        console.warn("Error parsing API error response as JSON:", e);
-        return {}; // Devuelve un objeto vacío si falla el parseo
+        // Advertencia si no se puede parsear la respuesta de error, pero no bloquea.
+        console.warn(
+          "Error al parsear la respuesta de error de la API como JSON:",
+          e
+        );
+        return {}; // Devuelve un objeto vacío para continuar
       });
     }
 
+    // Construye un mensaje de error a partir de los datos del error o un mensaje genérico
     const errorMessage =
       errorData.message || `Error ${response.status}: Algo salió mal.`;
 
     const error = new Error(errorMessage);
-    error.statusCode = response.status; // ✅ Añadir el status code al error
+    error.statusCode = response.status; // Adjunta el código de estado HTTP al objeto de error
     throw error;
   }
 
+  // Si la respuesta es exitosa, intenta parsear como JSON
   const contentType = response.headers.get("content-type");
   if (contentType && contentType.includes("application/json")) {
     return response.json();
   }
-  return {}; // Devuelve un objeto vacío si no hay contenido JSON (útil para DELETEs 204)
+  // Si no hay contenido JSON (ej. para respuestas 204 No Content de DELETE), devuelve un objeto vacío
+  return {};
 };
 
 /**
- * Función auxiliar para construir los headers con el token.
+ * Función auxiliar para construir los encabezados de la petición, incluyendo el token de autorización.
  * @param {string} token - El token de autenticación del usuario.
- * @returns {Object} Los headers para la petición.
+ * @returns {Object} Los encabezados configurados para la petición.
  */
 const getAuthHeaders = (token) => {
   const headers = {
@@ -56,67 +62,18 @@ const getAuthHeaders = (token) => {
 };
 
 /**
- * Obtiene los detalles de una lista de compras específica.
- * Usada en ShoppingListPage para cargar los productos de una lista.
- * @param {string} listId - El ID de la lista.
- * @param {string} token - El token de autenticación del usuario.
- * @returns {Promise<Object>} - Objeto con los detalles de la lista (ej. { name, products: [] }).
- */
-/* export const fetchShoppingListDetails = async (listId, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists/shopping/${listId}`, {
-      method: "GET",
-      headers: getAuthHeaders(token), // ✅ Usar la función auxiliar
-    });
-    const data = await handleApiResponse(response);
-
-    // Procesar la data cruda del backend para el formato que espera el frontend
-    if (!data || data.length === 0) {
-      const error = new Error("Lista no encontrada o sin productos.");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const listName = data[0].name_list; // Asume que la columna es 'name_list'
-    const products = data.map((item) => ({
-      id: item.id_item, // ID del ítem en list_items
-      name: item.product_name, // Nombre del producto del list_items
-      quantity: item.quantity,
-      price: item.price, // Si quieres el precio ya cargado desde la BD
-      isBought: item.is_bought, // Estado de compra
-    }));
-
-    return { name: listName, products };
-  } catch (error) {
-    console.error("Error fetching shopping list details:", error);
-    throw error;
-  }
-}; */
-
-/**
  * Obtiene todas las listas (pendientes y compradas) de un usuario específico.
- * Usada en DashboardPage para mostrar todas las listas del usuario.
- *
- * NOTA: Si tu backend filtra las listas por el ID del usuario directamente desde el token
- * (es decir, `/api/lists` sin `userId` en la URL), entonces el `userId` no es necesario aquí
- * ni en la URL. Dejaré el `userId` en la URL por si es tu diseño actual.
- *
+ * Usada en DashboardPage.
  * @param {string} userId - El ID del usuario.
  * @param {string} token - El token de autenticación del usuario.
  * @returns {Promise<Object>} - Objeto con dos arrays: `pending` y `purchased`.
  */
 export const fetchAllListsByUserId = async (userId, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists/${userId}`, {
-      // Revisa esta URL si el userId viene del token
-      method: "GET",
-      headers: getAuthHeaders(token),
-    });
-    return handleApiResponse(response); // Esto debería devolver { pending: [...], purchased: [...] }
-  } catch (error) {
-    console.error("Error fetching all lists by user ID:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/lists/${userId}`, {
+    method: "GET",
+    headers: getAuthHeaders(token),
+  });
+  return handleApiResponse(response); // El error se propaga automáticamente si handleApiResponse lo lanza
 };
 
 /**
@@ -128,39 +85,28 @@ export const fetchAllListsByUserId = async (userId, token) => {
  * @returns {Promise<Object>} - La respuesta del servidor tras guardar.
  */
 export const savePurchase = async (listId, payload, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}/complete`, {
-      method: "PUT",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify(payload),
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Error saving purchase:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/lists/${listId}/complete`, {
+    method: "PUT",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+  return handleApiResponse(response);
 };
 
 /**
  * Elimina una lista de compras específica.
- * Usada en DashboardPage (a través de PendingLists/PurchasedLists) para borrar una lista.
+ * Usada en DashboardPage para borrar una lista.
  * @param {string} listId - El ID de la lista a eliminar.
  * @param {string} token - El token de autenticación del usuario.
  * @returns {Promise<boolean>} - `true` si la eliminación fue exitosa.
  */
 export const deleteList = async (listId, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}`, {
-      method: "DELETE",
-      // Para DELETE, Content-Type a menudo no es necesario en el request, pero el Authorization sí.
-      headers: getAuthHeaders(token),
-    });
-    await handleApiResponse(response); // Si todo va bien, handleApiResponse devuelve {} o null para 204
-    return true; // Si no hay errores, consideramos que se eliminó con éxito
-  } catch (error) {
-    console.error("Error deleting list:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/lists/${listId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(token),
+  });
+  await handleApiResponse(response); // handleApiResponse manejará errores; si no hay, devuelve un objeto vacío
+  return true; // Si llegamos aquí, la operación fue exitosa
 };
 
 /**
@@ -170,17 +116,12 @@ export const deleteList = async (listId, token) => {
  * @returns {Promise<Object>} - La lista creada con su ID.
  */
 export const createList = async (listData, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists`, {
-      method: "POST",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify(listData),
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Error creating list:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/lists`, {
+    method: "POST",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(listData),
+  });
+  return handleApiResponse(response);
 };
 
 /**
@@ -191,67 +132,36 @@ export const createList = async (listData, token) => {
  * @returns {Promise<Object>} - La lista actualizada.
  */
 export const updateList = async (listId, updateData, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}`, {
-      method: "PUT",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify(updateData),
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Error updating list:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/lists/${listId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(updateData),
+  });
+  return handleApiResponse(response);
 };
-
-// Puedes añadir más funciones aquí para otros endpoints de items o listas específicas
-/*
-export const updateListItem = async (listId, itemId, itemData, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/lists/${listId}/items/${itemId}`, {
-      method: "PUT",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify(itemData),
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Error updating list item:", error);
-    throw error;
-  }
-};
-*/
-
-// ... (otras funciones y definiciones) ...
 
 /**
- * Obtiene los detalles de una lista de compras específica (completa).
+ * Obtiene los detalles completos de una lista de compras (incluyendo ítems y precios finales).
+ * Usada en ListDetailsPage para mostrar una lista ya completada.
  * @param {string} listId - El ID de la lista.
  * @param {string} token - El token de autenticación del usuario.
  * @returns {Promise<Object>} - Objeto con los detalles de la lista y sus productos.
+ * @throws {Error} - Lanza un error si el ID o el token no son proporcionados.
  */
 export const fetchListDetailsCompleted = async (listId, token) => {
-  // ✅ Nuevo nombre para evitar confusión con "shopping"
   if (!listId) {
-    throw new Error("ID da lista é obrigatório para buscar detalhes.");
+    throw new Error("El ID de la lista es obligatorio para buscar detalles.");
   }
   if (!token) {
-    throw new Error("Token de autenticação não fornecido.");
+    throw new Error("El token de autenticación no fue proporcionado.");
   }
 
-  try {
-    // ✅ CORREGIDA LA URL para apuntar a tu endpoint de detalles completos
-    const response = await fetch(
-      `${API_BASE_URL}/api/lists/completeDetails/${listId}`,
-      {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      }
-    );
-    // ✅ El controlador ya normaliza la data, solo la devolvemos directamente
-    const data = await handleApiResponse(response);
-    return data;
-  } catch (error) {
-    console.error("Error fetching completed list details:", error);
-    throw error;
-  }
+  const response = await fetch(
+    `${API_BASE_URL}/api/lists/completeDetails/${listId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(token),
+    }
+  );
+  return handleApiResponse(response);
 };

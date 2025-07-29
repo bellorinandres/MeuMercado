@@ -11,24 +11,33 @@ import ConfirmModal from "../components/Modals/ConfirmModal";
 import AlertDialog from "../components/Modals/AlertDialog";
 
 export default function DashboardPage() {
+  // Contexto de autenticación para obtener el usuario y la función de logout
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Estados principales para la data y el UI
   const [pendingLists, setPendingLists] = useState([]);
-
+  const [purchasedListsByMonth, setPurchasedListsByMonth] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Estados para los modales
+  // Estados para el modal de confirmación de eliminación
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [listToDeleteId, setListToDeleteId] = useState(null);
+
+  // Estados para el modal de alerta (éxito/error/info)
   const [showAlertDialog, setShowAlertDialog] = useState(false);
   const [alertDialogType, setAlertDialogType] = useState("info");
   const [alertDialogMessage, setAlertDialogMessage] = useState("");
   const [alertDialogTitle, setAlertDialogTitle] = useState("");
-  const [purchasedListsByMonth, setPurchasedListsByMonth] = useState({}); // ✅ Renombrado y tipo de estado
 
-  // Helper para formatear la fecha a un string de mes y año
+  // --- Funciones Auxiliares ---
+
+  /**
+   * Formatea una cadena de fecha a un string de mes y año (ej: "julio 2025").
+   * @param {string} dateString - La fecha en formato string.
+   * @returns {string} Fecha formateada o "Fecha desconocida".
+   */
   const formatDateToMonthYear = (dateString) => {
     if (!dateString) return "Fecha desconocida";
     const date = new Date(dateString);
@@ -36,31 +45,35 @@ export default function DashboardPage() {
     return date.toLocaleDateString("es-ES", options);
   };
 
+  /**
+   * Carga y procesa todas las listas (pendientes y compradas) del usuario.
+   * Utiliza useCallback para memorizar la función y evitar recargas innecesarias.
+   */
   const loadLists = useCallback(async () => {
     try {
-      setIsLoading(true);
-      setError(null);
+      setIsLoading(true); // Inicia el estado de carga
+      setError(null); // Limpia cualquier error previo
 
+      // Redirige al login si el usuario no está autenticado
       if (!user?.id || !user?.token) {
-        console.warn(
-          "Usuario no autenticado o token ausente. Redirigiendo a login."
-        );
         navigate("/login");
         return;
       }
 
+      // Obtiene todas las listas del backend
       const data = await fetchAllListsByUserId(user.id, user.token);
 
-      // Procesamiento de listas pendientes (sin cambios)|
+      // --- Procesamiento de Listas Pendientes ---
       const loadedPendingLists = data.pending.map((list) => ({
         id: list.id_list,
         titulo: list.name_list,
+        // product_count ya viene del backend gracias a la corrección SQL
         productos: list.product_count,
         fechaCreacion: list.created_at.split("T")[0],
       }));
       setPendingLists(loadedPendingLists);
 
-      // ✅ PROCESAR, AGRUPAR Y CALCULAR TOTALES PARA LAS LISTAS COMPRADAS
+      // --- Procesamiento y Agrupación de Listas Compradas ---
       const rawPurchasedLists = data.purchased;
 
       const groupedPurchasedLists = rawPurchasedLists.reduce((acc, list) => {
@@ -69,7 +82,7 @@ export default function DashboardPage() {
         if (!acc[monthYear]) {
           acc[monthYear] = {
             lists: [], // Array para las listas de este mes
-            monthlyTotal: 0, // ✅ Inicializa el total mensual
+            monthlyTotal: 0, // Inicializa el total mensual
           };
         }
 
@@ -79,24 +92,24 @@ export default function DashboardPage() {
           id: list.id_list,
           titulo: list.name_list,
           totalProductos: list.total_products,
-          totalCosto: listTotalCost, // Ya es un número aquí
+          totalCosto: listTotalCost,
           fechaCompra: list.purchased_at
             ? new Date(list.purchased_at).toLocaleDateString("es-ES")
             : "N/A",
         });
 
-        acc[monthYear].monthlyTotal += listTotalCost; // ✅ Suma al total mensual
-
+        acc[monthYear].monthlyTotal += listTotalCost; // Suma al total mensual
         return acc;
       }, {});
 
-      // Ordenar los meses para que el más reciente aparezca primero
+      // Ordena los meses para que el más reciente aparezca primero
       const sortedMonths = Object.keys(groupedPurchasedLists).sort((a, b) => {
         const dateA = new Date(a.replace(/(\w+)\s(\d{4})/, "$1 1, $2"));
         const dateB = new Date(b.replace(/(\w+)\s(\d{4})/, "$1 1, $2"));
         return dateB - dateA;
       });
 
+      // Construye el objeto final de listas compradas ordenadas por mes
       const orderedPurchasedLists = {};
       sortedMonths.forEach((month) => {
         orderedPurchasedLists[month] = groupedPurchasedLists[month];
@@ -104,102 +117,122 @@ export default function DashboardPage() {
 
       setPurchasedListsByMonth(orderedPurchasedLists);
     } catch (err) {
+      // Manejo de errores durante la carga de listas
       setError("Error al cargar tus listas. Por favor, inténtalo de nuevo.");
-      console.error("Failed to fetch lists:", err);
       if (err.message.includes("401") || err.message.includes("403")) {
+        // Si el error es de autenticación, cierra sesión y redirige
         logout();
         navigate("/login");
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Finaliza el estado de carga
     }
-  }, [user, navigate, logout]);
+  }, [user, navigate, logout]); // Dependencias para useCallback
 
-  // Efecto para cargar las listas al montar el componente o cambiar el usuario
-  useEffect(() => {
-    loadLists();
-  }, [loadLists]); // Depende de loadLists, que es un useCallback
+  // --- Funciones de Manejo de Eventos y Modales ---
 
-  // ✅ Función que se llama cuando se hace clic en el botón de eliminar de una lista
+  /**
+   * Inicia el proceso de eliminación de una lista, abriendo el modal de confirmación.
+   * @param {string} listId - El ID de la lista a eliminar.
+   */
   const handleInitiateDelete = (listId) => {
-    setListToDeleteId(listId); // Guarda el ID de la lista a eliminar
-    setShowConfirmDeleteModal(true); // Abre el modal de confirmación
+    setListToDeleteId(listId); // Guarda el ID de la lista
+    setShowConfirmDeleteModal(true); // Muestra el modal de confirmación
   };
 
-  // ✅ Función para cerrar el modal de confirmación
+  /**
+   * Cancela la operación de eliminación y cierra el modal de confirmación.
+   */
   const handleCancelDelete = () => {
     setShowConfirmDeleteModal(false);
-    setListToDeleteId(null);
+    setListToDeleteId(null); // Limpia el ID guardado
   };
 
-  // ✅ Función para confirmar la eliminación (ejecuta la lógica real)
+  /**
+   * Ejecuta la eliminación de la lista después de la confirmación del usuario.
+   * Utiliza useCallback para memorizar la función.
+   */
   const handleConfirmDelete = useCallback(async () => {
-    setShowConfirmDeleteModal(false); // Cierra el modal de confirmación inmediatamente
-    if (!listToDeleteId) return;
+    setShowConfirmDeleteModal(false); // Cierra el modal de confirmación
+    if (!listToDeleteId) return; // Asegura que haya un ID para eliminar
 
     try {
-      setIsLoading(true);
-      setError(null);
+      setIsLoading(true); // Inicia la carga
+      setError(null); // Limpia errores previos
 
       if (!user?.token) {
         throw new Error("Token de usuario no disponible para eliminar.");
       }
 
-      await deleteList(listToDeleteId, user.token);
-      await loadLists(); // Recarga las listas para reflejar el cambio
+      await deleteList(listToDeleteId, user.token); // Llama al servicio de eliminación
+      await loadLists(); // Recarga las listas para actualizar la UI
 
+      // Muestra un mensaje de éxito
       setAlertDialogType("success");
       setAlertDialogTitle("¡Éxito!");
       setAlertDialogMessage("Lista eliminada con éxito.");
-      setShowAlertDialog(true); // Muestra el modal de éxito
+      setShowAlertDialog(true);
     } catch (err) {
-      console.error("Failed to delete list:", err);
+      // Manejo de errores durante la eliminación
       let errorMessage =
         "Error al eliminar la lista. Por favor, inténtalo de nuevo.";
       if (err.message.includes("404")) {
         errorMessage = "La lista no fue encontrada o ya ha sido eliminada.";
-      } else if (
-        err.message.includes(
-          "No se puede eliminar la lista porque tiene productos asociados."
-        )
-      ) {
+      } else if (err.message.includes("productos asociados")) {
         errorMessage =
           "No se puede eliminar la lista porque tiene productos asociados. Elimina primero los productos de la lista.";
       } else if (err.message.includes("401") || err.message.includes("403")) {
         errorMessage =
           "Tu sesión ha expirado o no tienes permiso. Por favor, inicia sesión de nuevo.";
-        logout();
-        navigate("/login");
+        logout(); // Cierra sesión en caso de error de autenticación
+        navigate("/login"); // Redirige al login
       }
 
+      // Muestra un mensaje de error
       setAlertDialogType("error");
       setAlertDialogTitle("Error");
       setAlertDialogMessage(errorMessage);
-      setShowAlertDialog(true); // Muestra el modal de error
-      setError(errorMessage); // También puedes mantener el estado de error para otros usos si quieres
+      setShowAlertDialog(true);
+      setError(errorMessage); // También actualiza el estado de error principal
     } finally {
-      setIsLoading(false);
-      setListToDeleteId(null); // Limpia el ID de la lista después de la operación
+      setIsLoading(false); // Finaliza la carga
+      setListToDeleteId(null); // Limpia el ID de la lista
     }
   }, [listToDeleteId, user, loadLists, logout, navigate]); // Dependencias
 
+  /**
+   * Cierra el modal de alerta y reinicia sus estados.
+   */
   const handleCloseAlertDialog = () => {
     setShowAlertDialog(false);
     setAlertDialogMessage("");
     setAlertDialogTitle("");
-    setAlertDialogType("info"); // Reinicia el tipo
+    setAlertDialogType("info"); // Reinicia a tipo 'info' por defecto
   };
 
+  /**
+   * Maneja el cierre de sesión del usuario.
+   */
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // Render de estados especiales
+  // --- Efectos de Carga de Datos ---
+
+  // Efecto para cargar las listas al montar el componente o cuando 'loadLists' cambia
+  useEffect(() => {
+    loadLists();
+  }, [loadLists]);
+
+  // --- Renderizado Condicional ---
+
+  // Muestra un componente de carga si isLoading es true
   if (isLoading) {
     return <IsLoading />;
   }
 
+  // Muestra un mensaje de error si hay un error y no está cargando
   if (error) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -209,7 +242,7 @@ export default function DashboardPage() {
           </p>
           <p className="text-gray-700">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.reload()} // Permite al usuario reintentar la carga
             className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Reintentar
@@ -219,6 +252,7 @@ export default function DashboardPage() {
     );
   }
 
+  // --- Renderizado Principal del Dashboard ---
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-5xl mx-auto space-y-8">
@@ -228,13 +262,16 @@ export default function DashboardPage() {
             listas={pendingLists}
             onDeleteList={handleInitiateDelete}
           />
-          <PurchasedLists listas={purchasedListsByMonth} />
+          <PurchasedLists
+            listas={purchasedListsByMonth}
+            onDeleteList={handleInitiateDelete}
+          />
         </main>
         <div className="flex justify-center md:justify-end mt-8">
           <NewListButton />
         </div>
       </div>
-      {/* ✅ Modales */}
+      {/* Modales de Confirmación y Alerta */}
       <ConfirmModal
         show={showConfirmDeleteModal}
         title="Confirmar Eliminación"
@@ -242,7 +279,6 @@ export default function DashboardPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />
-
       <AlertDialog
         show={showAlertDialog}
         title={alertDialogTitle}

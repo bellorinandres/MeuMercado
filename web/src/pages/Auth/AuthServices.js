@@ -3,7 +3,7 @@
 // ✅ Reutilizamos la misma variable de entorno para la URL base de la API
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-  console.log(import.meta.env.VITE_API_BASE_URL);
+// console.log(import.meta.env.VITE_API_BASE_URL);
 
 // Si usas Create React App (CRA) en lugar de Vite, descomenta la siguiente línea y comenta la de arriba:
 // const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api";
@@ -98,14 +98,3 @@ export async function LoginServices(email, password) {
   }
 }
 
-// Puedes añadir una función para logout si la necesitas, por ejemplo:
-/*
-export async function logout() {
-  // Si tu backend tiene un endpoint de logout, puedes llamarlo aquí.
-  // De lo contrario, el "logout" en el frontend suele ser borrar el token del almacenamiento local.
-  // No hay necesidad de una llamada a la API si solo borras el token.
-  console.log("User logged out (frontend action).");
-  localStorage.removeItem('user'); // O el nombre de tu clave en localStorage
-  // window.location.href = '/login'; // O usar navigate('/')
-}
-*/

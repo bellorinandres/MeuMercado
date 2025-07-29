@@ -50,6 +50,16 @@ async function createTables() {
       FOREIGN KEY (id_list) REFERENCES lists(id_list)
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      id_user INT NOT NULL,
+      token VARCHAR(255) NOT NULL,
+      expires_at DATETIME NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE
+    );
+  `);
 }
 
 export async function initDatabase() {
