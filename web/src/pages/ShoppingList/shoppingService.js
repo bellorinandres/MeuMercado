@@ -92,3 +92,35 @@ export async function getPurchasedLists(token) {
     throw error;
   }
 }
+export async function updateListItemPrice(itemId, newPrice, token) {
+  try {
+    const { data } = await axiosInstance.put(
+      `/api/lists/items/${itemId}`, // <-- Coincide con tu nueva ruta en el backend
+      { price: newPrice },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return data;
+  } catch (error) {
+    console.error("updateListItemPrice Error:", error);
+    throw error;
+  }
+}
+
+export async function addItemsToList(listId, items, token) {
+  console.log(items);
+  try {
+    const { data } = await axiosInstance.post(
+      `/api/lists/${listId}/items`,
+      { items },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return data;
+  } catch (error) {
+    console.error("addItemsToList Error:", error);
+    throw error;
+  }
+}

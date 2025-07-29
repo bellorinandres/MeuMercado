@@ -55,8 +55,6 @@ export const insertList = async (conn, user_id, name) => {
  * @throws {TypeError} If any item's 'name' is not a string or 'quantity' is not a number.
  */
 export const insertListItems = async (conn, list_id, items) => {
-  // Validate if items is a non-empty array
-  // Valida si items es un array no vacío
   if (!Array.isArray(items) || items.length === 0) {
     console.error(
       "Error: 'items' is not an array or is empty in insertListItems model."
@@ -64,11 +62,7 @@ export const insertListItems = async (conn, list_id, items) => {
     throw new Error("'items' must be a non-empty array of item objects.");
   }
 
-  // Map items to an array of arrays for batch insertion
-  // Mapea los ítems a un array de arrays para la inserción por lotes
   const values = items.map((item, index) => {
-    // Basic type validation for item properties to prevent 'val.toString is not a function' error
-    // Validación básica de tipos para las propiedades del ítem para prevenir el error 'val.toString is not a function'
     if (typeof item.name !== "string" || typeof item.quantity !== "number") {
       console.error(
         `Type Error for item [${index}]: name='${
@@ -81,25 +75,28 @@ export const insertListItems = async (conn, list_id, items) => {
         `Item [${index}] has an incorrect name or quantity type. Expected string/number.`
       );
     }
-
+    const itemPrice = typeof item.price === "number" ? item.price : 0.0;
+    console.log(itemPrice);
     return [
       list_id,
       item.name,
       item.quantity,
-      0.0, // initial price (ensure it's a number)
-      // precio inicial (asegúrate de que es un número)
-      0, // is_bought (ensure it's a number or boolean equivalent)
-      // is_bought (asegúrate de que es un número o un equivalente booleano)
+      itemPrice,
+      0, // is_bought (initial value)
     ];
   });
 
   try {
-    await conn.query(
-      // Use the provided 'conn'
-      // Usa la 'conn' proporcionada
+    // Al ejecutar la consulta, conn.query devuelve un array donde el primer elemento
+    // es el objeto de resultados de la consulta (que contiene affectedRows, insertId, etc.)
+    // y el segundo elemento son las definiciones de los campos.
+    const queryResult = await conn.query(
+      // <--- Cambiado a queryResult
       `INSERT INTO list_items (id_list, product_name, quantity, price, is_bought) VALUES ?`,
       [values]
     );
+    // Debemos devolver el primer elemento del array de resultados de la consulta
+    return queryResult[0]; // <--- ¡Devuelve el objeto de resultados que contiene affectedRows!
   } catch (dbError) {
     console.error(
       "Error executing batch insert in insertListItems model:",
@@ -107,8 +104,6 @@ export const insertListItems = async (conn, list_id, items) => {
     );
     throw dbError;
   }
-  // The connection is NOT released here; it's handled by the calling function (controller) for transactions.
-  // La conexión NO se libera aquí; es manejada por la función que la llama (controlador) para transacciones.
 };
 
 /**
@@ -486,5 +481,20 @@ export const getListCompleteByUserIdListId = async (list_id, user_id) => {
     throw error;
   } finally {
     if (conn) conn.release();
+  }
+};
+
+export const updateListItemPrice = async (conn, listItemId, newPrice) => {
+  try {
+    const query = `
+      UPDATE list_items
+      SET price = ?
+      WHERE id_item = ?;
+    `;
+    const [result] = await conn.query(query, [newPrice, listItemId]);
+    return result; // Esto contendrá info como `affectedRows`
+  } catch (error) {
+    console.error("Error updating list item price in model:", error);
+    throw error;
   }
 };
