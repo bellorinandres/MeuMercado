@@ -45,3 +45,13 @@ CREATE TABLE
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (id_user) REFERENCES users (id_user) ON DELETE CASCADE
     );
+
+CREATE TABLE
+    user_settings (
+        id_user_setting INT AUTO_INCREMENT PRIMARY KEY,
+        id_user INT NOT NULL,
+        language VARCHAR(10) NOT NULL,
+        currency VARCHAR(5) NOT NULL,
+        FOREIGN KEY (id_user) REFERENCES users (id_user) ON DELETE CASCADE,
+        UNIQUE (id_user) -- ¡Esta restricción es clave!
+    );

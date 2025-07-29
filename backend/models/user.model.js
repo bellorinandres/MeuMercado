@@ -9,10 +9,40 @@ export const findAllUsers = async () => {
 
 export const findUserById = async (id) => {
   const [rows] = await pool.query(
-    "SELECT id_user, name, email FROM users WHERE id_user = ?",
+    "SELECT name, email FROM users WHERE id_user = ?",
     [id]
   );
   return rows[0];
+};
+export const getSettingsUserById = async (conn, id_user) => {
+  // Cambiado 'id' a 'id_user' para mayor claridad
+  try {
+    // Envuelve la operación en un bloque try-catch para manejar errores
+    const [rows] = await conn.query(
+      `SELECT
+          u.id_user,
+          u.name,
+          u.email,          
+          us.language,
+          us.currency
+       FROM
+          users u
+       JOIN
+          user_settings us ON u.id_user = us.id_user
+       WHERE
+          u.id_user = ?`,
+      [id_user] // Usa el nombre de la variable consistente
+    );
+
+    // Es buena práctica retornar null o undefined si no se encuentra el usuario
+    // en lugar de un objeto vacío o undefined de rows[0].
+    return rows.length > 0 ? rows[0] : null;
+  } catch (error) {
+    // Registra el error para depuración
+    console.error("Error en getSettingsUserById:", error);
+    // Relanza el error para que el controlador pueda manejarlo
+    throw error;
+  }
 };
 
 export const insertUser = async (name, email, password) => {

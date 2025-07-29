@@ -9,6 +9,7 @@ import {
   deleteListById,
   completeListPurchase,
   getListCompleteByUserIdListId,
+  updateListItemPrice,
 } from "../models/list.models.js";
 
 // --- Controlador para crear una nueva lista ---
@@ -243,5 +244,118 @@ export const getDetailListCompleted = async (req, res) => {
     res.status(500).json({
       message: "Error interno del servidor al obtener detalles de la lista.",
     });
+  }
+};
+
+export const addItemsToList = async (req, res) => {
+  let conn; // Declara conn fuera del try para que sea accesible en el finally
+  try {
+    const { listId } = req.params; // Obtiene el ID de la lista de los parámetros de la URL
+    const { items } = req.body; // Obtiene el array de ítems del cuerpo de la petición
+
+    // 1. Validaciones básicas de entrada
+    if (!listId) {
+      return res.status(400).json({ message: "List ID is required." });
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Items must be a non-empty array." });
+    }
+
+    // Opcional: Validar cada ítem en el array (nombre, cantidad, precio)
+    // Esto es muy recomendable para asegurar que los datos son correctos antes de pasarlos al modelo.
+    for (const item of items) {
+      if (
+        !item.name ||
+        typeof item.name !== "string" ||
+        item.name.trim() === ""
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Each item must have a valid 'name' (string)." });
+      }
+      if (typeof item.quantity !== "number" || item.quantity <= 0) {
+        return res.status(400).json({
+          message: "Each item must have a valid 'quantity' (positive number).",
+        });
+      }
+      // El precio es opcional al añadir, pero si viene, debe ser un número válido
+      if (
+        (item.price !== undefined && typeof item.price !== "number") ||
+        item.price < 0
+      ) {
+        return res.status(400).json({
+          message:
+            "Each item 'price' must be a valid non-negative number if provided.",
+        });
+      }
+    }
+
+    // 2. Obtener conexión a la base de datos (y posiblemente iniciar una transacción)
+    conn = await pool.getConnection(); // Asume que getConnection() devuelve una conexión de DB
+
+    // 3. Llamar al modelo para insertar los ítems
+    const result = await insertListItems(conn, listId, items);
+
+    // 4. Enviar una respuesta exitosa
+    // Puedes enviar un mensaje de éxito y/o el resultado de la inserción
+    res.status(201).json({
+      message: "Items added to list successfully.",
+      addedCount: result.affectedRows, // Número de filas insertadas
+      // Opcional: Si tu DB devuelve los IDs de los nuevos ítems, inclúyelos aquí.
+      // MySQL's result.insertId es solo para la primera fila insertada en batch.
+    });
+  } catch (error) {
+    console.error("Error in addItemsToList controller:", error);
+
+    // 5. Manejo de errores
+    if (error instanceof TypeError) {
+      // Errores de tipo del modelo
+      return res.status(400).json({ message: error.message });
+    }
+    // Puedes añadir más manejo específico de errores de DB si tu modelo lanza errores personalizados
+    res
+      .status(500)
+      .json({ message: "Failed to add items to list.", error: error.message });
+  } finally {
+    // 6. Liberar la conexión a la base de datos
+    if (conn) conn.release();
+  }
+};
+
+export const updateItemPrice = async (req, res) => {
+  let conn;
+  try {
+    const { itemId } = req.params; // ID del ítem específico de la lista
+    const { price } = req.body; // El nuevo precio
+
+    // Validación básica
+    if (!itemId || price === undefined || isNaN(parseFloat(price))) {
+      return res
+        .status(400)
+        .json({ message: "Item ID and a valid price are required." });
+    }
+
+    conn = await pool.getConnection();
+    const result = await updateListItemPrice(conn, itemId, parseFloat(price));
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "List item not found or no change made." });
+    }
+
+    res.status(200).json({
+      message: "Item price updated successfully.",
+      affectedRows: result.affectedRows,
+    });
+  } catch (error) {
+    console.error("Error in updateItemPrice controller:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to update item price.", error: error.message });
+  } finally {
+    if (conn) conn.release();
   }
 };
