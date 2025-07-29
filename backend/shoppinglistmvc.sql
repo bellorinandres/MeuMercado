@@ -35,3 +35,13 @@ CREATE TABLE
         is_bought TINYINT (1) DEFAULT 0, -- 0 = No comprada, 1 = Comprada (dentro de esta lista)
         FOREIGN KEY (id_list) REFERENCES lists (id_list)
     );
+
+CREATE TABLE
+    password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_user INT NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_user) REFERENCES users (id_user) ON DELETE CASCADE
+    );

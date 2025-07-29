@@ -22,9 +22,11 @@ export default function ViewDetailsButton({ listId, listTitle }) {
                  focus:ring-blue-500 transition-colors duration-200"
       aria-label={ariaLabelText}
     >
+      {buttonText}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="-ml-0.5 mr-1 h-4 w-4"
+        // CAMBIO AQUÍ: -ml-0.5 cambiado a ml-1 (o ml-0.5 si prefieres menos espacio)
+        className="ml-1 h-4 w-4" // Eliminado -ml-0.5 y añadido ml-1 para espacio entre texto y SVG
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -33,10 +35,9 @@ export default function ViewDetailsButton({ listId, listTitle }) {
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M13 16l-4-4m0 0l4-4m-4 4h12"
+          d="M11 8l4 4m0 0l-4 4m4-4H3"
         />
       </svg>
-      {buttonText}
     </Link>
   );
 }

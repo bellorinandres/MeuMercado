@@ -1,7 +1,8 @@
 // web/src/pages/Dashboard/components/PurchasedLists.jsx
 import ViewDetailsButton from "../components/ViewDetailsButton";
+import DeleteListButton from "./DeleteListButton";
 
-export default function PurchasedLists({ listas }) {
+export default function PurchasedLists({ listas, onDeleteList }) {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-AR", {
       style: "currency",
@@ -30,22 +31,22 @@ export default function PurchasedLists({ listas }) {
             <div key={mes} className="bg-gray-50 p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-semibold text-xl text-gray-700">{mes}</h3>
-                {/* ✅ Mostrar el total del mes aquí */}
                 <span className="text-lg font-bold text-blue-700">
                   Total del mes: {formatCurrency(listas[mes].monthlyTotal)}
                 </span>
               </div>
               <ul className="space-y-3">
-                {/* ✅ Acceder a listas[mes].lists para mapear las listas individuales */}
                 {listas[mes].lists.map((lista) => (
                   <li
                     key={lista.id}
-                    className="p-3 border border-gray-200 rounded-md bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 transition-all duration-200 hover:shadow-md"
+                    className="p-3 border border-gray-200 rounded-md bg-white
+                               flex flex-col sm:flex-row justify-between items-start sm:items-center
+                               gap-y-3 sm:gap-x-4 transition-all duration-200 hover:shadow-md"
                   >
-                    <div className="flex-grow text-gray-800">
+                    {/* Información de la lista */}
+                    <div className="flex-grow text-gray-800 w-full">
                       <p className="font-semibold text-lg">{lista.titulo}</p>
-
-                      {lista.totalProductos !== undefined && ( // Asegurarse de que existe
+                      {lista.totalProductos !== undefined && (
                         <p className="text-sm text-gray-600 mt-1">
                           Productos:{" "}
                           <span className="font-semibold">
@@ -53,8 +54,7 @@ export default function PurchasedLists({ listas }) {
                           </span>
                         </p>
                       )}
-                      {/* ✅ Mostrar el total de cada compra aquí */}
-                      {lista.totalCosto !== undefined && ( // Asegurarse de que existe
+                      {lista.totalCosto !== undefined && (
                         <p className="text-sm text-gray-600">
                           Costo Total:{" "}
                           <span className="font-semibold text-green-700">
@@ -69,10 +69,23 @@ export default function PurchasedLists({ listas }) {
                       )}
                     </div>
 
-                    <ViewDetailsButton
-                      listId={lista.id}
-                      listTitle={lista.titulo}
-                    />
+                    {/* Contenedor para ambos botones: Eliminar (izquierda 30%) y Ver Detalles (derecha 70%) */}
+                    {/* Uniformidad con PendingLists: siempre flex-row, anchos fijos en móvil */}
+                    <div className="flex flex-row items-center gap-2 w-full sm:w-auto mt-3 sm:mt-0">
+                      {/* Botón de eliminar - 30% de ancho en móvil, se vuelve 'auto' en sm */}
+                      <div className="w-3/10 sm:w-auto">
+                        <DeleteListButton
+                          onDelete={() => onDeleteList(lista.id)}
+                        />
+                      </div>
+                      {/* Botón "Ver Detalles" - 70% de ancho en móvil, se vuelve 'auto' en sm */}
+                      <div className="w-7/10 sm:w-auto">
+                        <ViewDetailsButton
+                          listId={lista.id}
+                          listTitle={lista.titulo}
+                        />
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

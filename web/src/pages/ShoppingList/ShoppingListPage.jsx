@@ -18,6 +18,10 @@ import {
   completeShoppingList,
   getShoppingListDetails,
 } from "./shoppingService";
+import { ErrorScreen, LoadingScreen } from "./components/FeedbackScreens";
+import ShoppingListHeader from "./components/ShoppingListHeader";
+import TotalDisplay from "./components/TotalDisplay";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 export default function ShoppingListPage() {
   const { listId } = useParams();
@@ -30,16 +34,6 @@ export default function ShoppingListPage() {
   const [error, setError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessModalMessage] = useState(""); // Renombrado para evitar conflicto
-
-  // --- Utility for currency formatting ---
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // --- CALCULA EL COSTO TOTAL ACTUAL AQUI (ANTES DE handleSavePurchase) ---
   const totalCurrentCost = useMemo(() => {
@@ -141,69 +135,16 @@ export default function ShoppingListPage() {
     setShowSuccessModal(false);
     // Ya el modal debería manejar la navegación al dashboard
   }, []);
-
-  // --- Renderizado del estado de carga/error (igual que antes) ---
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-          <svg
-            className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-3"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <p className="text-gray-700">Cargando lista...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center p-6 bg-white rounded-lg shadow-lg">
-          <p className="text-red-600 font-medium mb-3">
-            ¡Oops! Algo salió mal.
-          </p>
-          <p className="text-gray-700">{error}</p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Volver al Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen message="Cargando lista..." />;
+  if (error)
+    return <ErrorScreen error={error} onRetry={() => navigate("/dashboard")} />;
 
   // --- Renderizado principal de la página ---
   return (
     <div className="bg-gray-100 min-h-screen py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-xl mx-auto bg-white rounded-md shadow-lg p-6 sm:p-8">
         {/* Encabezado */}
-        <div className="flex items-center justify-between mb-6">
-          <BackButton to="/dashboard" ariaLabel="Regresar al Dashboard" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center flex-grow">
-            🛒 Comprar:{listName}
-          </h1>
-          <div className="w-10"></div>
-        </div>
+        <ShoppingListHeader title={listName} />
 
         {/* Lista de productos con campos de precio */}
         {products.length > 0 ? (
@@ -223,9 +164,7 @@ export default function ShoppingListPage() {
         )}
 
         {/* Current Total Cost Display */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center text-xl font-semibold text-blue-800 shadow-sm">
-          Total Actual: {formatCurrency(totalCurrentCost)}
-        </div>
+        <TotalDisplay amount={formatCurrency(totalCurrentCost)} />
 
         {/* Save Purchase Button */}
         <SavePurchaseButton
