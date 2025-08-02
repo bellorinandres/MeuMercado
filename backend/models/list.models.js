@@ -1,23 +1,4 @@
-import pool from "../config/db.js"; // Ensure this path is correct and db.js exports the 'pool'
-// Asegúrate de que esta ruta sea correcta y que db.js exporte el 'pool'
-
-/**
- * Inserts a new list into the database.
- * This function is designed to be used within a transaction,
- * so it receives an existing connection `conn` from the controller.
- * It does NOT manage its own connection (get/release).
- *
- * Inserta una nueva lista en la base de datos.
- * Esta función está diseñada para ser usada dentro de una transacción,
- * por lo que recibe una conexión `conn` existente desde el controlador.
- * NO gestiona su propia conexión (obtener/liberar).
- *
- * @param {object} conn - The database connection object (from pool.getConnection()).
- * @param {number} user_id - The ID of the user creating the list.
- * @param {string} name - The name of the list.
- * @returns {Promise<number>} The ID of the newly inserted list.
- * @throws {Error} If there is a database error during insertion.
- */
+import pool from "../config/db.js";
 export const insertList = async (conn, user_id, name) => {
   try {
     const [result] = await conn.query(
@@ -31,29 +12,8 @@ export const insertList = async (conn, user_id, name) => {
     console.error("Error in insertList model:", error);
     throw error;
   }
-  // The connection is NOT released here; it's handled by the calling function (controller) for transactions.
-  // La conexión NO se libera aquí; es manejada por la función que la llama (controlador) para transacciones.
 };
 
-/**
- * Inserts multiple items into the 'list_items' table for a given list.
- * This function is designed to be used within a transaction,
- * so it receives an existing connection `conn` from the controller.
- * It does NOT manage its own connection (get/release).
- *
- * Inserta múltiples ítems en la tabla 'list_items' para una lista dada.
- * Esta función está diseñada para ser usada dentro de una transacción,
- * por lo que recibe una conexión `conn` existente desde el controlador.
- * NO gestiona su propia conexión (obtener/liberar).
- *
- * @param {object} conn - The database connection object (from pool.getConnection()).
- * @param {number} list_id - The ID of the list to which items belong.
- * @param {Array<object>} items - An array of item objects, each with 'name' (string) and 'quantity' (number).
- * Example: [{ name: 'Milk', quantity: 1 }, { name: 'Bread', quantity: 2 }]
- * @returns {Promise<void>} A Promise that resolves when all items are inserted.
- * @throws {Error} If 'items' is not an array or is empty, or if a database error occurs during insertion.
- * @throws {TypeError} If any item's 'name' is not a string or 'quantity' is not a number.
- */
 export const insertListItems = async (conn, list_id, items) => {
   if (!Array.isArray(items) || items.length === 0) {
     console.error(
@@ -106,17 +66,6 @@ export const insertListItems = async (conn, list_id, items) => {
   }
 };
 
-/**
- * Retrieves all lists (pending or completed) for a specific user,
- * including a count of products in each list.
- *
- * Recupera todas las listas (pendientes o completadas) para un usuario específico,
- * incluyendo un conteo de productos en cada lista.
- *
- * @param {number} user_id - The ID of the user.
- * @returns {Promise<Array<object>>} An array of list objects.
- * @throws {Error} If there is a database error.
- */
 export const getAllListsByUserId = async (user_id) => {
   let conn;
   try {
@@ -149,17 +98,6 @@ export const getAllListsByUserId = async (user_id) => {
   }
 };
 
-/**
- * Marks a list as completed, updating its status and purchase date.
- * (Note: This function might be replaced/improved by `completeListPurchase` for full purchase details).
- *
- * Marca una lista como completada, actualizando su estado y fecha de compra.
- * (Nota: ¡Esta función podría ser reemplazada/mejorada por `completeListPurchase` para detalles completos de compra!)
- *
- * @param {number} list_id - The ID of the list to complete.
- * @returns {Promise<boolean>} True if the list was updated, false otherwise.
- * @throws {Error} If there is a database error.
- */
 export const completeList = async (list_id) => {
   let conn;
   try {
@@ -181,15 +119,6 @@ export const completeList = async (list_id) => {
   }
 };
 
-/**
- * Retrieves only the pending (incomplete) lists for a specific user.
- *
- * Recupera solo las listas pendientes (incompletas) para un usuario específico.
- *
- * @param {number} user_id - The ID of the user.
- * @returns {Promise<Array<object>>} An array of pending list objects.
- * @throws {Error} If there is a database error.
- */
 export const getPendingListsByUserId = async (user_id) => {
   let conn;
   try {
@@ -219,17 +148,6 @@ export const getPendingListsByUserId = async (user_id) => {
   }
 };
 
-/**
- * Retrieves the purchased (completed) lists for a specific user,
- * including the total number of products and total cost for each list.
- *
- * Recupera las listas compradas (completadas) para un usuario específico,
- * incluyendo el número total de productos y el costo total de cada lista.
- *
- * @param {number} user_id - The ID of the user.
- * @returns {Promise<Array<object>>} An array of purchased list objects with aggregated data.
- * @throws {Error} If there is a database error.
- */
 export const getPurchasedListsByUserId = async (user_id) => {
   let conn;
   try {
@@ -259,18 +177,6 @@ export const getPurchasedListsByUserId = async (user_id) => {
   }
 };
 
-/**
- * Retrieves the details of a specific shopping list, including all its items.
- * Ensures the list belongs to the specified user for security.
- *
- * Recupera los detalles de una lista de compras específica, incluyendo todos sus ítems.
- * Asegura que la lista pertenezca al usuario especificado por seguridad.
- *
- * @param {number} list_id - The ID of the list to retrieve.
- * @param {number} user_id - The ID of the user who owns the list.
- * @returns {Promise<Array<object>>} An array of item objects belonging to the list.
- * @throws {Error} If there is a database error.
- */
 export const getListItemsByListId = async (list_id, user_id) => {
   let conn;
   try {
@@ -304,18 +210,6 @@ export const getListItemsByListId = async (list_id, user_id) => {
   }
 };
 
-/**
- * Deletes a list and all its associated items within a database transaction.
- * Ensures the list belongs to the specified user before deletion.
- *
- * Elimina una lista y todos sus ítems asociados dentro de una transacción de base de datos.
- * Asegura que la lista pertenezca al usuario especificado antes de la eliminación.
- *
- * @param {number} list_id - The ID of the list to delete.
- * @param {number} user_id - The ID of the user who owns the list.
- * @returns {Promise<boolean>} True if the list was successfully deleted, false if not found or unauthorized.
- * @throws {Error} If there is a database error during the transaction.
- */
 export const deleteListById = async (list_id, user_id) => {
   let conn;
   try {
@@ -329,21 +223,15 @@ export const deleteListById = async (list_id, user_id) => {
       "DELETE FROM list_items WHERE id_list = ?",
       [list_id]
     );
-    // console.log(`Deleted ${deleteItemsResult.affectedRows} items for list ${list_id}`); // Debug log (can be uncommented for specific debugging if needed)
-    // console.log(`Se eliminaron ${deleteItemsResult.affectedRows} ítems para la lista ${list_id}`); // Log de depuración (puede descomentarse para depuración específica si es necesario)
 
-    // 2. Then, delete the list. Add `id_user` to the WHERE condition for security
-    // 2. Luego, eliminar la lista. Se agrega `id_user` a la condición WHERE por seguridad
     const [deleteListResult] = await conn.query(
       "DELETE FROM lists WHERE id_list = ? AND id_user = ?",
       [list_id, user_id]
     );
 
     if (deleteListResult.affectedRows === 0) {
-      await conn.rollback(); // Rollback if list not found or unauthorized
-      // Deshacer si la lista no se encontró o no pertenece al usuario
-      return false; // Not deleted because not found or not owned by user
-      // No se eliminó porque no se encontró o no es del usuario
+      await conn.rollback();
+      return false;
     }
 
     await conn.commit(); // Commit the transaction
@@ -361,20 +249,6 @@ export const deleteListById = async (list_id, user_id) => {
   }
 };
 
-/**
- * Completes a list purchase by updating item prices and marking the list as completed.
- * It's performed within a database transaction to ensure data consistency.
- *
- * Completa la compra de una lista actualizando los precios de los ítems y marcando la lista como completada.
- * Se realiza dentro de una transacción de base de datos para asegurar la consistencia de los datos.
- *
- * @param {number} listId - The ID of the list to complete.
- * @param {number} userId - The ID of the user who owns the list.
- * @param {Array<object>} items - An array of item objects with 'id' (item ID) and 'price' (updated price).
- * Example: [{ id: 101, price: 2.50 }, { id: 102, price: 1.75 }]
- * @returns {Promise<boolean>} True if the purchase was successfully completed, false if the list was not found or unauthorized.
- * @throws {Error} If a database error occurs during the transaction.
- */
 export const completeListPurchase = async (listId, userId, items) => {
   let conn;
   try {

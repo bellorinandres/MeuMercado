@@ -1,4 +1,3 @@
-// web/src/pages/Settings/SettingsPage.jsx
 import { useState, useEffect, useContext } from "react";
 import {
   useNavigate,
@@ -12,44 +11,38 @@ import { AuthContext } from "../../context/AuthContext";
 import PersonalDataSection from "./sections/PersonalDataSection";
 import AccountSection from "./sections/AccountSection";
 import GeneralSettingsSection from "./sections/GeneralSettingsSection";
-import { fetchSettingsUser } from "./settings.services";
+// Importar la función del servicio para cargar datos y la de actualizar el nombre
+import { fetchSettingsUser, updateName } from "./settings.services";
+
 import BackButton from "../components/Buttons/BackButton";
 
 export default function SettingsPage() {
-  const { user, logout } = useContext(AuthContext); // Necesitamos el token del usuario y la función logout
-
+  const { user, logout, updateUser } = useContext(AuthContext); // Necesitamos el token del usuario
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Inicializa userData como null, o con un objeto vacío si prefieres.
-  // Será rellenado con los datos reales del backend.
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Redirigir si no hay usuario autenticado
   useEffect(() => {
-    console.log("Objeto user actual de AuthContext:", user);
-
     if (!user || !user.token) {
       navigate("/login");
-      return; // Añade un return para detener la ejecución si no hay token
     }
-    // ... el resto de tu loadUserData
-  }, [user, navigate, logout]);
+  }, [user, navigate]);
 
-  // Cargar datos del usuario y sus configuraciones al montar el componente
+  // Cargar datos del usuario y sus configuraciones
   useEffect(() => {
     const loadUserData = async () => {
       setLoading(true);
-      setError(null); // Limpiar errores previos
+      setError(null);
 
       if (user && user.token) {
         try {
-          // Llama a la función de servicio, solo pasas el token
           const responseData = await fetchSettingsUser(user.token);
-          // Actualiza el estado con los datos del usuario y sus settings
-          setUserData(responseData.user); // Asume que la API devuelve { user: {...} }
+          setUserData(responseData.user);
         } catch (err) {
           console.error(
             "Error al cargar datos del usuario en SettingsPage:",
@@ -58,39 +51,50 @@ export default function SettingsPage() {
           setError(
             err.message || "Error al cargar tus datos. Intenta de nuevo."
           );
-
-          // Opcional: Si el token es inválido o expiró, desloguear al usuario
           if (err.statusCode === 401 || err.statusCode === 403) {
-            logout(); // Función del AuthContext para limpiar el token y redirigir
+            logout();
             navigate("/login");
           }
         } finally {
           setLoading(false);
         }
       } else {
-        setLoading(false); // Si no hay token, no hay carga, pero ya se redirigió
+        setLoading(false);
       }
     };
 
-    loadUserData(); // Ejecutar la función de carga
-  }, [user, navigate, logout]); // Dependencias: recarga si el usuario o las funciones cambian
+    loadUserData();
+  }, [user, navigate, logout]);
 
-  // Función para actualizar los datos en el estado de SettingsPage
-  // Esto se pasa a los subcomponentes para que puedan notificar cambios
-  // (Esta función necesitará llamar al backend para guardar los cambios en el futuro)
-  const handleUserDataUpdate = (updatedFields) => {
-    setUserData((prevData) => ({
-      ...prevData,
-      ...updatedFields,
-    }));
-    // Por ahora, solo actualiza el estado local. En el futuro, aquí se haría la llamada PUT al backend.
-    console.log(
-      "Datos de usuario actualizados localmente (aún no en backend):",
-      updatedFields
-    );
+  const handleUserDataUpdate = async (updatedFields) => {
+    try {
+      setSuccessMessage(null); // Limpar mensagem de sucesso prévia
+      setError(null); // Limpar erros prévios
+
+      const token = user.token;
+
+      // A variável 'response' agora é usada
+      const response = await updateName(updatedFields, token);
+
+      // Se a chamada à API foi bem-sucedida, atualize o estado local
+      // Note que 'updatedFields' contém { newName: "..." }
+      setUserData((prevData) => ({
+        ...prevData,
+        ...updatedFields,
+      }));
+      const updatedUser = { name: updatedFields.newName };
+      updateUser(updatedUser);
+      // Use a mensagem da resposta da API para dar feedback
+      setSuccessMessage(response.message || "Nome atualizado com sucesso.");
+    } catch (err) {
+      console.error("Erro ao atualizar o nome do usuário:", err);
+      // Extraia o erro da resposta da API, se disponível
+      const errorMessage =
+        err.message || "Ocorreu um erro ao atualizar o nome.";
+      setError(errorMessage);
+    }
   };
-
-  // Renderiza un spinner o mensaje de carga mientras se obtienen los datos
+  // Renderiza... (el resto del código de renderizado es el mismo)
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -99,7 +103,6 @@ export default function SettingsPage() {
     );
   }
 
-  // Si userData es null después de cargar (ej. por un error), podrías mostrar un mensaje diferente
   if (!userData) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 text-red-700">
@@ -177,6 +180,14 @@ export default function SettingsPage() {
               role="alert"
             >
               <span className="block sm:inline">{error}</span>
+            </div>
+          )}
+          {successMessage && (
+            <div
+              className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+              role="alert"
+            >
+              <span className="block sm:inline">{successMessage}</span>
             </div>
           )}
 

@@ -10,30 +10,96 @@ import {
   deleteResetTokensByUserId,
 } from "../models/passwordReset.model.js";
 import { sendRecoveryEmail } from "../utils/emailService.js";
-import { findUserByEmail, insertUser } from "../models/user.model.js";
+import {
+  createUserSettings,
+  findUserByEmail,
+  insertUser,
+} from "../models/user.model.js";
+import { getDefaultSettingsByIp } from "../utils/locationUtils.js";
 
 // Register a new user
 // POST /api/users/register
 
 export const createUser = async (req, res) => {
+  let conn; // Initialize connection variable for proper release in finally block
   try {
+    conn = await pool.getConnection(); // Obtain a connection from the pool
+
     const { name, email, password } = req.body;
 
+    // --- 1. Basic Input Validation ---
     if (!name || !email || !password) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const existingUser = await findUserByEmail(email);
+    // --- 2. Get Client IP for Geo-location ---
+    // IMPORTANT: If your app is behind a proxy (e.g., Nginx, Heroku, Vercel, Render),
+    // the real IP is usually in 'x-forwarded-for'. Otherwise, 'req.connection.remoteAddress' or 'req.ip' is used.
+    const clientIp =
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    console.log(clientIp);
+    // For local development on some systems, req.connection.remoteAddress might be '::1' (IPv6 localhost) or '127.0.0.1' (IPv4 localhost).
+
+    // --- 3. Check for Existing User ---
+    const existingUser = await findUserByEmail(email); // Pass connection if your model uses it
     if (existingUser) {
       return res.status(409).json({ error: "Email already registered" });
     }
 
-    const result = await insertUser(name, email, password);
+    // --- 4. Insert New User into 'users' table ---
+    // Assuming insertUser uses 'conn' and returns an object with insertId
+    const userInsertResult = await insertUser(name, email, password);
+    const newUserId = userInsertResult.insertId;
 
-    res.status(201).json({ id: result.insertId, name, email });
+    if (!newUserId) {
+      // This case should ideally not happen if insertUser works correctly,
+      // but it's a safeguard.
+      return res.status(500).json({ error: "Failed to create user." });
+    }
+
+    // --- 5. Determine Default Settings based on IP ---
+    const { language: defaultLanguage, currency: defaultCurrency } =
+      getDefaultSettingsByIp(clientIp);
+
+    console.log(
+      `Usuario ${newUserId} registrado con idioma: ${defaultLanguage}, moneda: ${defaultCurrency}`
+    );
+
+    // --- 6. Create Default User Settings ---
+    // Use the id_user obtained from the user insertion
+    const settingsResult = await createUserSettings(
+      newUserId,
+      defaultLanguage,
+      defaultCurrency
+    );
+
+    // Optional: Handle the result from createUserSettings
+    if (!settingsResult.success) {
+      console.warn(
+        `Could not create settings for user ${newUserId}: ${settingsResult.message}`
+      );
+      // You might choose to still return 201 for user creation,
+      // but log the settings error or return a different status if settings are critical.
+      // For now, we'll proceed as user was created.
+    }
+
+    // --- 7. Respond with Success ---
+    res.status(201).json({
+      id: newUserId,
+      name,
+      email,
+      language: defaultLanguage,
+      currency: defaultCurrency,
+    });
   } catch (err) {
     console.error("🔥 Error in createUser:", err);
-    res.status(500).json({ error: err.message });
+    // Be careful not to expose too much internal error detail in production
+    res
+      .status(500)
+      .json({ error: "An unexpected error occurred during registration." });
+  } finally {
+    // Ensure the connection is released back to the pool
+    if (conn) conn.release();
   }
 };
 
