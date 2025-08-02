@@ -37,6 +37,7 @@ export const createUser = async (req, res) => {
     // the real IP is usually in 'x-forwarded-for'. Otherwise, 'req.connection.remoteAddress' or 'req.ip' is used.
     const clientIp =
       req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    console.log(clientIp);
     // For local development on some systems, req.connection.remoteAddress might be '::1' (IPv6 localhost) or '127.0.0.1' (IPv4 localhost).
 
     // --- 3. Check for Existing User ---

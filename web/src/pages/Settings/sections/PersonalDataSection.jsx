@@ -1,33 +1,35 @@
-// web/src/pages/Settings/components/PersonalDataSection.jsx
 import { useState, useEffect } from "react";
 
 export default function PersonalDataSection({ userData, onUpdate }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    // Não precisa de phone se não for atualizado
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [originalName, setOriginalName] = useState("");
 
-  // Sincronizar formData con userData de la prop cuando userData cambia
-  // Esto asegura que el formulario se pre-rellene con los datos del padre
+  // Sincronizar formData com userData da prop quando userData muda
   useEffect(() => {
     if (userData) {
       setFormData({
         name: userData.name || "",
         email: userData.email || "",
-        phone: userData.phone || "",
       });
+      setOriginalName(userData.name || ""); // Armazena o nome original
     }
   }, [userData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    // Permitir apenas a mudança no campo 'name'
+    if (name === "name") {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -35,33 +37,37 @@ export default function PersonalDataSection({ userData, onUpdate }) {
     setMessage("");
     setError("");
 
-    // Validaciones básicas de frontend
-    if (!formData.name.trim() || !formData.email.trim()) {
-      setError("Nombre y Email son campos obligatorios.");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Por favor, ingresa un formato de email válido.");
+    // 1. Verificar se houve alguma mudança no nome
+    if (formData.name === originalName) {
+      setError("Nenhuma alteração feita. O nome é o mesmo.");
       return;
     }
 
-    // Aquí, en el futuro, harías la llamada a la API.
-    // Por ahora, solo actualizamos el estado del padre y mostramos un mensaje.
+    // 2. Validar o campo de nome
+    if (!formData.name.trim()) {
+      setError("O nome não pode estar vazio.");
+      return;
+    }
+
+    // Apenas enviar o novo nome para a API
+    const payload = {
+      newName: formData.name,
+    };
+
     try {
-      onUpdate(formData); // Llama a la función del padre para actualizar los datos
-      setMessage("¡Datos personales actualizados (simulación frontend)!");
+      // 3. Chamada à função onUpdate, passando apenas o payload necessário
+      onUpdate(payload);
+      setMessage("Dados pessoais atualizados com sucesso!");
+      setOriginalName(formData.name); // Atualiza o nome original
     } catch (err) {
-      // Si onUpdate lanzara un error (que no hará en simulación pura)
-      setError("Error simulado al actualizar datos.");
+      setError("Erro ao atualizar o nome. Por favor, tente novamente.");
       console.error(err);
     }
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Datos Personales
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Dados Pessoais</h2>
 
       {message && (
         <div
@@ -83,10 +89,26 @@ export default function PersonalDataSection({ userData, onUpdate }) {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            value={formData.email}
+            readOnly // Torna o campo de e-mail não editável
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 cursor-not-allowed sm:text-sm" // Adiciona um estilo para mostrar que não é editável
+          />
+        </div>
+        <div>
+          <label
             htmlFor="name"
             className="block text-sm font-medium text-gray-700"
           >
-            Nombre
+            Nome
           </label>
           <input
             type="text"
@@ -98,24 +120,6 @@ export default function PersonalDataSection({ userData, onUpdate }) {
             required
           />
         </div>
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            required
-          />
-        </div>
-        
         <div>
           <button
             type="submit"

@@ -18,7 +18,7 @@ export const getDefaultSettingsByIp = (clientIp) => {
     if (geo) {
       const countryCode = geo.country;
       console.log("País determinado por IP:", countryCode);
-
+      
       // Aquí puedes expandir tu lógica para mapear códigos de país a idioma/moneda.
       // Puedes hacer esto más sofisticado con un objeto de mapeo si tienes muchos países.
       switch (countryCode) {
