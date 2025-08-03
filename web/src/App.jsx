@@ -11,6 +11,8 @@ import ShoppingListPage from "./pages/ShoppingList/ShoppingListPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import SettingsPage from "./pages/Settings/SettingsPage";
 
+import "./i18n";
+
 export default function App() {
   return (
     <Routes>
