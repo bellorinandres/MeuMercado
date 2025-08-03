@@ -5,6 +5,7 @@ import {
   findAllUsers,
   findUserById,
   getSettingsUserById,
+  UpdateProfileById,
 } from "../models/user.model.js";
 
 export const getAllUsers = async (req, res) => {
@@ -16,36 +17,9 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export const getUserById = async (req, res) => {
-  const userId = req.user.id;
-  try {
-    const user = await findUserById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export const getProfile = async (req, res) => {
-  try {
-    const user = await findUserById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-
-    res.json({ id_user: user.id_user, name: user.name, email: user.email });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
 export const getConfig = async (req, res) => {
   const userId = req.user.id;
-  
+
   let conn;
   try {
     conn = await pool.getConnection();
@@ -79,6 +53,43 @@ export const getConfig = async (req, res) => {
     res.status(500).json({
       message: "Error al obtener los datos del usuario.",
       error: error.message,
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+export const updateNameById = async (req, res) => {
+  let conn;
+  try {
+    const { newName } = req.body;
+    const userId = req.user.id;
+
+    if (!userId || !newName) {
+      return res.status(400).json({
+        message: "ID de usuário e novo nome são obrigatórios.",
+      });
+    }
+
+    conn = await pool.getConnection();
+    const result = await UpdateProfileById(conn, userId, newName);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({
+          message: "Utilizador não encontrado ou nenhum nome foi alterado.",
+        });
+    }
+
+    res.status(200).json({
+      message: "Nome atualizado com sucesso.",
+      affectedRows: result.affectedRows,
+    });
+  } catch (error) {
+    console.error("Erro no controlador updateNameById:", error);
+    res.status(500).json({
+      message: "Ocorreu um erro interno do servidor.",
     });
   } finally {
     if (conn) conn.release();
