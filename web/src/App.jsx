@@ -8,6 +8,10 @@ import CreateList from "./pages/CreateList/CreateList";
 
 import ListDetailsPage from "./pages/Dashboard/ListDetailsPage";
 import ShoppingListPage from "./pages/ShoppingList/ShoppingListPage";
+import NotFoundPage from "./pages/NotFound/NotFoundPage";
+import SettingsPage from "./pages/Settings/SettingsPage";
+
+import "./i18n";
 
 export default function App() {
   return (
@@ -22,6 +26,9 @@ export default function App() {
         <Route path="/createList" element={<CreateList />} />{" "}
         <Route path="/list/:listId/purchase" element={<ShoppingListPage />} />
         <Route path="/list/:listId/details" element={<ListDetailsPage />} />
+        <Route path="/settings/*" element={<SettingsPage />} />
+        <Route path="*" element={<NotFoundPage />} />{" "}
+        {/* Ruta 404 (al final de todas las rutas) */}
       </Route>
 
       {/* Puedes añadir una ruta de fallback para páginas no encontradas */}

@@ -1,6 +1,5 @@
 // web/src/pages/Dashboard/components/DashboardHeader.jsx
 import { Link } from "react-router-dom";
-import React from "react"; // Asegúrate de importar React
 
 export default function DashboardHeader({ user, onLogout }) {
   // Define el nombre del usuario, con un fallback si no está disponible
@@ -29,16 +28,14 @@ export default function DashboardHeader({ user, onLogout }) {
         {" "}
         {/* Ajustes de gap y margin */}
         {/* Botón de Configuración */}
-        {/* <Link
-          to="/configuracion"
+        <Link
+          to="/settings"
           className="inline-flex items-center px-4 py-2 border border-transparent 
                      text-sm font-medium rounded-md shadow-sm text-gray-700 bg-gray-200 
                      hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 
                      focus:ring-gray-400 transition-colors duration-200"
           aria-label="Ir a Configuración"
-          
         >
-          
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="-ml-1 mr-2 h-5 w-5"
@@ -53,7 +50,7 @@ export default function DashboardHeader({ user, onLogout }) {
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1.51-1V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1 1.51H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.82-.33z"></path>
           </svg>
           Configuración
-        </Link> */}
+        </Link>
         {/* Botón de Cerrar Sesión */}
         <button
           onClick={onLogout}

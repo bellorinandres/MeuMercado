@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
 
     checkUser();
   }, []); // Empty dependency array ensures this runs only once on mount
-  
+
   const login = (userData) => {
     // userData MUST include a 'token' property from your backend's login response
     // Example: userData = { id: '...', email: '...', token: 'your.jwt.token' }
@@ -44,9 +44,15 @@ export function AuthProvider({ children }) {
     setUser(null); // Clear user data from state
     navigate("/"); // Redirect to the landing page after logging out
   };
+  const updateUser = (updatedUserFields) => {
+    setUser((prevUser) => ({
+      ...prevUser,
+      ...updatedUserFields,
+    }));
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
