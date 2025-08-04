@@ -137,3 +137,28 @@ export const UpdateProfileById = async (conn, id_user, newName) => {
     throw error;
   }
 };
+
+export const getUserPasswordHash = async (conn, userId) => {
+  try {
+    const [rows] = await conn.query(
+      `SELECT pass_hash FROM users WHERE id_user = ?`,
+      [userId]
+    );
+    return rows.length > 0 ? rows[0].pass_hash : null;
+  } catch (error) {
+    throw new Error(
+      "Error al obtener el hash de la contraseña: " + error.message
+    );
+  }
+};
+
+export const deleteUser = async (conn, userId) => {
+  try {
+    const [result] = await conn.query(`DELETE FROM users WHERE id_user = ?`, [
+      userId,
+    ]);
+    return result;
+  } catch (error) {
+    throw new Error("Error al eliminar el usuario: " + error.message);
+  }
+};

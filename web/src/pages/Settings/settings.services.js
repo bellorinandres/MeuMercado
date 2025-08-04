@@ -44,6 +44,35 @@ export const updateName = async (payload, token) => {
     }
   }
 };
+export const deleteUser = async (pass, token) => {
+  try {
+    const payload = { pass }; // Crea el objeto de datos con la contraseña
+
+    const { data } = await axiosInstance.delete(`/api/users/settings/delete`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: payload, // <--- La forma correcta de enviar el cuerpo con .delete()
+    });
+
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error("Error al eliminar la cuenta:", error.response.data);
+      throw new Error(
+        error.response.data.message || "Ocurrió un error al eliminar la cuenta."
+      );
+    } else if (error.request) {
+      console.error("Error de red:", error.request);
+      throw new Error(
+        "Error de conexión con el servidor. Por favor, inténtalo de nuevo."
+      );
+    } else {
+      console.error("Error inesperado:", error.message);
+      throw new Error(
+        "Ocurrió un error inesperado. Por favor, inténtalo de nuevo."
+      );
+    }
+  }
+};
 
 /**
  * Manejo de errores centralizado para Axios.

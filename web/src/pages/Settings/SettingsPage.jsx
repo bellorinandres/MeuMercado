@@ -11,13 +11,13 @@ import { AuthContext } from "../../context/AuthContext";
 import PersonalDataSection from "./sections/PersonalDataSection";
 import AccountSection from "./sections/AccountSection";
 import GeneralSettingsSection from "./sections/GeneralSettingsSection";
-// Importar la función del servicio para cargar datos y la de actualizar el nombre
-import { fetchSettingsUser, updateName } from "./settings.services";
+// Importa las funciones del servicio para cargar datos, actualizar el nombre y eliminar la cuenta
+import { fetchSettingsUser, updateName, deleteUser } from "./settings.services";
 
 import BackButton from "../components/Buttons/BackButton";
 
 export default function SettingsPage() {
-  const { user, logout, updateUser } = useContext(AuthContext); // Necesitamos el token del usuario
+  const { user, logout, updateUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,7 +38,6 @@ export default function SettingsPage() {
     const loadUserData = async () => {
       setLoading(true);
       setError(null);
-
       if (user && user.token) {
         try {
           const responseData = await fetchSettingsUser(user.token);
@@ -62,38 +61,53 @@ export default function SettingsPage() {
         setLoading(false);
       }
     };
-
     loadUserData();
   }, [user, navigate, logout]);
 
+  // Manejador para actualizar datos personales (p.ej. nombre)
   const handleUserDataUpdate = async (updatedFields) => {
     try {
-      setSuccessMessage(null); // Limpar mensagem de sucesso prévia
-      setError(null); // Limpar erros prévios
-
+      setSuccessMessage(null);
+      setError(null);
       const token = user.token;
-
-      // A variável 'response' agora é usada
       const response = await updateName(updatedFields, token);
 
-      // Se a chamada à API foi bem-sucedida, atualize o estado local
-      // Note que 'updatedFields' contém { newName: "..." }
-      setUserData((prevData) => ({
-        ...prevData,
-        ...updatedFields,
-      }));
+      // Actualiza el estado local y el contexto de autenticación
+      setUserData((prevData) => ({ ...prevData, ...updatedFields }));
       const updatedUser = { name: updatedFields.newName };
       updateUser(updatedUser);
-      // Use a mensagem da resposta da API para dar feedback
-      setSuccessMessage(response.message || "Nome atualizado com sucesso.");
+      setSuccessMessage(response.message || "Datos actualizados con éxito.");
     } catch (err) {
-      console.error("Erro ao atualizar o nome do usuário:", err);
-      // Extraia o erro da resposta da API, se disponível
+      console.error("Error al actualizar los datos del usuario:", err);
       const errorMessage =
-        err.message || "Ocorreu um erro ao atualizar o nome.";
+        err.message || "Ocurrió un error al actualizar los datos.";
       setError(errorMessage);
     }
   };
+
+  // Manejador para eliminar la cuenta de usuario
+  const handleDeleteAccount = async (pass) => {
+    try {
+      setSuccessMessage(null);
+      setError(null);
+      const token = user.token;
+      const response = await deleteUser(pass, token);
+
+      setSuccessMessage(response.message || "Tu cuenta ha sido eliminada.");
+
+      // Cierra la sesión después de un breve retraso para que el usuario pueda ver el mensaje
+      setTimeout(() => {
+        logout();
+        navigate("/");
+      }, 2000);
+    } catch (err) {
+      console.error("Error al eliminar la cuenta:", err);
+      const errorMessage =
+        err.message || "Ocurrió un error al eliminar tu cuenta.";
+      setError(errorMessage);
+    }
+  };
+
   // Renderiza... (el resto del código de renderizado es el mismo)
   if (loading) {
     return (
@@ -192,7 +206,6 @@ export default function SettingsPage() {
           )}
 
           <Routes>
-            {/* Secciones reciben userData y la función para actualizar el estado del padre */}
             <Route
               path="/"
               element={
@@ -213,7 +226,11 @@ export default function SettingsPage() {
             />
             <Route
               path="/account"
-              element={<AccountSection />} // AccountSection no necesita userData directamente por ahora
+              element={
+                <AccountSection
+                  onDeleteAccount={handleDeleteAccount} // <-- Pasamos el nuevo handler
+                />
+              }
             />
             <Route
               path="/general"
@@ -222,7 +239,7 @@ export default function SettingsPage() {
                   userSettings={userData.settings}
                   onUpdateSettings={handleUserDataUpdate}
                 />
-              } // Le pasamos las settings
+              }
             />
             <Route
               path="*"

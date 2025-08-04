@@ -1,10 +1,12 @@
 // backend/controllers/user.controllers.js
-
+import bcrypt from "bcrypt";
 import pool from "../config/db.js";
 import {
+  deleteUser,
   findAllUsers,
   findUserById,
   getSettingsUserById,
+  getUserPasswordHash,
   UpdateProfileById,
 } from "../models/user.model.js";
 
@@ -75,11 +77,9 @@ export const updateNameById = async (req, res) => {
     const result = await UpdateProfileById(conn, userId, newName);
 
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({
-          message: "Utilizador não encontrado ou nenhum nome foi alterado.",
-        });
+      return res.status(404).json({
+        message: "Utilizador não encontrado ou nenhum nome foi alterado.",
+      });
     }
 
     res.status(200).json({
@@ -90,6 +90,51 @@ export const updateNameById = async (req, res) => {
     console.error("Erro no controlador updateNameById:", error);
     res.status(500).json({
       message: "Ocorreu um erro interno do servidor.",
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  let conn;
+  try {
+    const { pass } = req.body;
+    const userId = req.user.id;
+    conn = await pool.getConnection();
+
+    const userPassHash = await getUserPasswordHash(conn, userId);
+
+    if (!userPassHash) {
+      return res.status(404).json({
+        message: "Usuario no encontrado.",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(pass, userPassHash);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Credenciales inválidas.",
+      });
+    }
+
+    const result = await deleteUser(conn, userId);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        message: "Usuario no encontrado o no se pudo eliminar.",
+      });
+    }
+
+    res.status(200).json({
+      message: "Cuenta eliminada con éxito.",
+      affectedRows: result.affectedRows,
+    });
+  } catch (error) {
+    console.error("Error al eliminar la cuenta:", error);
+    res.status(500).json({
+      message: "Ocurrió un error en el servidor.",
+      error: error.message,
     });
   } finally {
     if (conn) conn.release();

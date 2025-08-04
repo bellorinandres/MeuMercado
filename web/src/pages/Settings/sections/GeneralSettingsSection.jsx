@@ -32,7 +32,6 @@ export default function GeneralSettingsSection({
     onUpdateSettings({ settings: { ...userSettings, currency: newCurrency } });
     alert(`Moneda cambiada a: ${newCurrency} (simulación frontend)`);
   };
-
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">
