@@ -1,0 +1,35 @@
+{
+  "welcome_to": "Bem-vindo(a) ao",
+  "app_description": "Seu assistente pessoal para criar e organizar suas listas de compras de forma fácil e inteligente.",
+  "register_button": "Cadastrar",
+  "login_title": "Entrar",
+  "login_email_placeholder": "E-mail",
+  "login_password_placeholder": "Senha",
+  "login_button": "Entrar",
+  "login_loading": "Carregando...",
+  "login_no_account": "Não tem uma conta?",
+  "register_link": "Cadastre-se",
+  "login_invalid_email": "E-mail inválido",
+  "login_password_min_length": "Mínimo 6 caracteres",
+  "login_error": "Ocorreu um erro",
+
+  "register_title": "Criar uma Conta",
+  "register_name_placeholder": "Nome",
+  "register_confirm_password_placeholder": "Confirmar Senha",
+  "register_loading": "Carregando...",
+  "register_has_account": "Já tem uma conta?",
+  "login_link": "Entrar",
+  "register_success": "Registro bem-sucedido!",
+  "register_error": "Ocorreu um erro",
+
+  "register_name_required": "Nome obrigatório",
+  "register_password_min_length": "Mínimo 6 caracteres",
+  "register_password_lowercase": "Deve ter uma letra minúscula",
+  "register_password_uppercase": "Deve ter uma letra maiúscula",
+  "register_password_number": "Deve ter um número",
+  "register_password_special": "Deve ter um caractere especial",
+  "register_passwords_match": "As senhas não coincidem",
+  
+  "back_to_landing": "Voltar para a página inicial",
+  "back_to_landing_aria_label": "Voltar para a página inicial"
+}

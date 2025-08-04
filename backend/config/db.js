@@ -35,7 +35,7 @@ async function createTables() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       is_completed TINYINT(1) DEFAULT 0,
       purchased_at TIMESTAMP NULL DEFAULT NULL,
-      FOREIGN KEY (id_user) REFERENCES users(id_user)
+      FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE
     )
   `);
 
@@ -47,7 +47,7 @@ async function createTables() {
       quantity INT DEFAULT 1,
       price DECIMAL(10,2) DEFAULT 0.00,
       is_bought TINYINT(1) DEFAULT 0,
-      FOREIGN KEY (id_list) REFERENCES lists(id_list)
+      FOREIGN KEY (id_list) REFERENCES lists(id_list) ON DELETE CASCADE
     )
   `);
   await pool.query(`
@@ -59,6 +59,17 @@ async function createTables() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE
     );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS
+    user_settings (
+        id_user_setting INT AUTO_INCREMENT PRIMARY KEY,
+        id_user INT NOT NULL,
+        language VARCHAR(10) NOT NULL,
+        currency VARCHAR(5) NOT NULL,
+        FOREIGN KEY (id_user) REFERENCES users (id_user) ON DELETE CASCADE,
+        UNIQUE (id_user) -- ¡Esta restricción es clave!
+    );;
   `);
 }
 
