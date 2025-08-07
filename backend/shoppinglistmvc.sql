@@ -12,28 +12,28 @@ CREATE TABLE
         pass_hash VARCHAR(255) NOT NULL
     );
 
--- Tabla: lists
+-- Tabla: lists (Corrección aquí)
 CREATE TABLE
     lists (
         id_list INT AUTO_INCREMENT PRIMARY KEY,
         id_user INT NOT NULL,
         name_list VARCHAR(100) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        is_completed TINYINT (1) DEFAULT 0, -- 0 = Pendiente, 1 = Completada
+        is_completed TINYINT (1) DEFAULT 0,
         purchased_at TIMESTAMP NULL DEFAULT NULL,
-        FOREIGN KEY (id_user) REFERENCES users (id_user)
+        FOREIGN KEY (id_user) REFERENCES users (id_user) ON DELETE CASCADE
     );
 
--- Me basaré en tu definición original de `list_items`:
+-- Tabla: list_items (Corrección aquí)
 CREATE TABLE
     list_items (
         id_item INT AUTO_INCREMENT PRIMARY KEY,
         id_list INT NOT NULL,
-        product_name VARCHAR(100) NOT NULL, -- Nombre del producto en esta lista
+        product_name VARCHAR(100) NOT NULL,
         quantity INT DEFAULT 1,
-        price DECIMAL(10, 2) DEFAULT 0.00, -- Precio del producto cuando se va a comprar/se compró
-        is_bought TINYINT (1) DEFAULT 0, -- 0 = No comprada, 1 = Comprada (dentro de esta lista)
-        FOREIGN KEY (id_list) REFERENCES lists (id_list)
+        price DECIMAL(10, 2) DEFAULT 0.00,
+        is_bought TINYINT (1) DEFAULT 0,
+        FOREIGN KEY (id_list) REFERENCES lists (id_list) ON DELETE CASCADE
     );
 
 CREATE TABLE

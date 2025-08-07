@@ -1,6 +1,7 @@
 # Node.js backend
 /backend/node_modules/
 /backend/.env
+/backend/.sql
 
 # React frontend
 /web/node_modules/

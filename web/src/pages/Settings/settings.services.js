@@ -15,9 +15,13 @@ export const fetchSettingsUser = async (token) => {
 
 export const updateName = async (payload, token) => {
   try {
-    const { data } = await axiosInstance.put(`/api/users/settings`, payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data } = await axiosInstance.put(
+      `/api/users/settings/name`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     return data;
   } catch (error) {
     // Se o erro tiver uma resposta da API (ex: 400, 404, 500)
@@ -40,6 +44,69 @@ export const updateName = async (payload, token) => {
       console.error("Erro inesperado:", error.message);
       throw new Error(
         "Ocorreu um erro inesperado. Por favor, tente novamente."
+      );
+    }
+  }
+};
+
+// --- Función para actualizar la configuración general (idioma, moneda) ---
+export const updateGeneralSettings = async (payload, token) => {
+  try {
+    const { data } = await axiosInstance.put(
+      `/api/users/settings/updateGeneral`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error(
+        "Erro ao atualizar a configuração geral:",
+        error.response.data
+      );
+      throw new Error(
+        error.response.data.message ||
+          "Ocorreu um erro na atualização da configuração."
+      );
+    } else {
+      console.error(
+        "Erro inesperado ao atualizar a configuração:",
+        error.message
+      );
+      throw new Error(
+        "Ocorreu um erro inesperado. Por favor, tente novamente."
+      );
+    }
+  }
+};
+
+export const deleteUser = async (pass, token) => {
+  try {
+    const payload = { pass }; // Crea el objeto de datos con la contraseña
+
+    const { data } = await axiosInstance.delete(`/api/users/settings/delete`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: payload, // <--- La forma correcta de enviar el cuerpo con .delete()
+    });
+
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error("Error al eliminar la cuenta:", error.response.data);
+      throw new Error(
+        error.response.data.message || "Ocurrió un error al eliminar la cuenta."
+      );
+    } else if (error.request) {
+      console.error("Error de red:", error.request);
+      throw new Error(
+        "Error de conexión con el servidor. Por favor, inténtalo de nuevo."
+      );
+    } else {
+      console.error("Error inesperado:", error.message);
+      throw new Error(
+        "Ocurrió un error inesperado. Por favor, inténtalo de nuevo."
       );
     }
   }
