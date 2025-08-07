@@ -44,13 +44,18 @@ export function AuthProvider({ children }) {
     setUser(null); // Clear user data from state
     navigate("/"); // Redirect to the landing page after logging out
   };
+  // ✅ CAMBIO CLAVE AQUÍ: Actualiza el estado Y localStorage
   const updateUser = (updatedUserFields) => {
-    setUser((prevUser) => ({
-      ...prevUser,
-      ...updatedUserFields,
-    }));
+    setUser((prevUser) => {
+      const updatedUser = {
+        ...prevUser,
+        ...updatedUserFields,
+      };
+      // Guarda el objeto de usuario completo y actualizado en localStorage
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return updatedUser;
+    });
   };
-
   return (
     <AuthContext.Provider value={{ user, login, logout, loading, updateUser }}>
       {children}

@@ -1,32 +1,74 @@
+// backend/routes/user.routes.js
 import express from "express";
+
+// --- Controladores ---
+// Rutas de autenticación
+import { loginUser, createUser } from "../controllers/auth.controllers.js";
+// Rutas de usuario y configuración
 import {
   deleteAccount,
   getConfig,
   updateNameById,
+  updateSettings,
 } from "../controllers/user.controllers.js";
-import { validate } from "../middlewares/zod.validade.js";
-import { loginSchema, registerSchema } from "../validator/user.validator.js";
-import {
-  forgotPassword,
-  resetPassword,
-  loginUser,
-  createUser,
-} from "../controllers/auth.controllers.js";
+
+// --- Middlewares ---
 import { verifyToken } from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/zod.validade.js";
+
+// --- Validadores ---
+import { loginSchema, registerSchema } from "../validator/user.validator.js";
 
 const userRouter = express.Router();
-// GET - Select
+
+// =======================================================
+//   RUTAS DE AUTENTICACIÓN (LOGIN, REGISTRO)
+// =======================================================
+
+/**
+ * @route POST /register
+ * @description Registra un nuevo usuario
+ * @access Public
+ */
+userRouter.post("/register", validate(registerSchema), createUser);
+
+/**
+ * @route POST /login
+ * @description Inicia sesión de un usuario
+ * @access Public
+ */
+userRouter.post("/login", validate(loginSchema), loginUser);
+
+// =======================================================
+//   RUTAS DE AJUSTES Y PERFIL DE USUARIO
+// =======================================================
+
+/**
+ * @route GET /settings
+ * @description Obtiene la configuración del usuario autenticado
+ * @access Private (Requiere token)
+ */
 userRouter.get("/settings", verifyToken, getConfig);
 
-// PUT - Update
-userRouter.put("/settings", verifyToken, updateNameById);
-// userRouter.put("/settings/updatePassword");
-// POST - Insert
-userRouter.post("/register", validate(registerSchema), createUser);
-userRouter.post("/login", validate(loginSchema), loginUser);
-userRouter.post("/reset-password", resetPassword);
-userRouter.post("/forgot-password", forgotPassword);
+/**
+ * @route PUT /settings/name
+ * @description Actualiza el nombre del usuario autenticado
+ * @access Private (Requiere token)
+ */
+userRouter.put("/settings/name", verifyToken, updateNameById);
 
-// DELETE - Delete
+/**
+ * @route PUT /settings/updateGeneral
+ * @description Actualiza las configuraciones generales del usuario (idioma, moneda)
+ * @access Private (Requiere token)
+ */
+userRouter.put("/settings/updateGeneral", verifyToken, updateSettings);
+
+/**
+ * @route DELETE /settings/delete
+ * @description Elimina la cuenta del usuario autenticado
+ * @access Private (Requiere token)
+ */
 userRouter.delete("/settings/delete", verifyToken, deleteAccount);
+
 export default userRouter;

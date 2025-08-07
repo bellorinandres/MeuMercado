@@ -1,3 +1,5 @@
+// web/src/pages/Settings/SettingsPage.jsx
+
 import { useState, useEffect, useContext } from "react";
 import {
   useNavigate,
@@ -11,8 +13,13 @@ import { AuthContext } from "../../context/AuthContext";
 import PersonalDataSection from "./sections/PersonalDataSection";
 import AccountSection from "./sections/AccountSection";
 import GeneralSettingsSection from "./sections/GeneralSettingsSection";
-// Importa las funciones del servicio para cargar datos, actualizar el nombre y eliminar la cuenta
-import { fetchSettingsUser, updateName, deleteUser } from "./settings.services";
+// Importa las funciones del servicio para cargar datos, actualizar el nombre y la configuración, y eliminar la cuenta
+import {
+  fetchSettingsUser,
+  updateName,
+  deleteUser,
+  updateGeneralSettings,
+} from "./settings.services";
 
 import BackButton from "../components/Buttons/BackButton";
 
@@ -40,6 +47,7 @@ export default function SettingsPage() {
       setError(null);
       if (user && user.token) {
         try {
+          // Asumimos que fetchSettingsUser retorna un objeto { user: { name, email, language, currency } }
           const responseData = await fetchSettingsUser(user.token);
           setUserData(responseData.user);
         } catch (err) {
@@ -74,13 +82,39 @@ export default function SettingsPage() {
 
       // Actualiza el estado local y el contexto de autenticación
       setUserData((prevData) => ({ ...prevData, ...updatedFields }));
-      const updatedUser = { name: updatedFields.newName };
+      const updatedUser = { ...user, ...updatedFields };
       updateUser(updatedUser);
       setSuccessMessage(response.message || "Datos actualizados con éxito.");
     } catch (err) {
       console.error("Error al actualizar los datos del usuario:", err);
       const errorMessage =
         err.message || "Ocurrió un error al actualizar los datos.";
+      setError(errorMessage);
+    }
+  };
+
+  // NUEVO MANEJADOR PARA ACTUALIZAR CONFIGURACIONES GENERALES
+  const handleSettingsUpdate = async (updatedSettings) => {
+    try {
+      setSuccessMessage(null);
+      setError(null);
+      const token = user.token;
+      const response = await updateGeneralSettings(updatedSettings, token);
+
+      // ✅ Solución: Construye el nuevo objeto de usuario con la estructura correcta
+      const updatedUser = {
+        ...user,
+        settings: { ...user.settings, ...updatedSettings },
+      };
+      updateUser(updatedUser);
+
+      setSuccessMessage(
+        response.message || "Configuración actualizada con éxito."
+      );
+    } catch (err) {
+      console.error("Error al actualizar la configuración general:", err);
+      const errorMessage =
+        err.message || "Ocurrió un error al actualizar la configuración.";
       setError(errorMessage);
     }
   };
@@ -92,10 +126,7 @@ export default function SettingsPage() {
       setError(null);
       const token = user.token;
       const response = await deleteUser(pass, token);
-
       setSuccessMessage(response.message || "Tu cuenta ha sido eliminada.");
-
-      // Cierra la sesión después de un breve retraso para que el usuario pueda ver el mensaje
       setTimeout(() => {
         logout();
         navigate("/");
@@ -108,7 +139,6 @@ export default function SettingsPage() {
     }
   };
 
-  // Renderiza... (el resto del código de renderizado es el mismo)
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -226,18 +256,14 @@ export default function SettingsPage() {
             />
             <Route
               path="/account"
-              element={
-                <AccountSection
-                  onDeleteAccount={handleDeleteAccount} // <-- Pasamos el nuevo handler
-                />
-              }
+              element={<AccountSection onDeleteAccount={handleDeleteAccount} />}
             />
             <Route
               path="/general"
               element={
                 <GeneralSettingsSection
-                  userSettings={userData.settings}
-                  onUpdateSettings={handleUserDataUpdate}
+                  userSettings={userData} // <-- ¡CAMBIO CLAVE AQUÍ!
+                  onUpdateSettings={handleSettingsUpdate}
                 />
               }
             />

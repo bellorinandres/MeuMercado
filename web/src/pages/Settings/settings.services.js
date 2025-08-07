@@ -15,9 +15,13 @@ export const fetchSettingsUser = async (token) => {
 
 export const updateName = async (payload, token) => {
   try {
-    const { data } = await axiosInstance.put(`/api/users/settings`, payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data } = await axiosInstance.put(
+      `/api/users/settings/name`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     return data;
   } catch (error) {
     // Se o erro tiver uma resposta da API (ex: 400, 404, 500)
@@ -44,6 +48,40 @@ export const updateName = async (payload, token) => {
     }
   }
 };
+
+// --- Función para actualizar la configuración general (idioma, moneda) ---
+export const updateGeneralSettings = async (payload, token) => {
+  try {
+    const { data } = await axiosInstance.put(
+      `/api/users/settings/updateGeneral`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error(
+        "Erro ao atualizar a configuração geral:",
+        error.response.data
+      );
+      throw new Error(
+        error.response.data.message ||
+          "Ocorreu um erro na atualização da configuração."
+      );
+    } else {
+      console.error(
+        "Erro inesperado ao atualizar a configuração:",
+        error.message
+      );
+      throw new Error(
+        "Ocorreu um erro inesperado. Por favor, tente novamente."
+      );
+    }
+  }
+};
+
 export const deleteUser = async (pass, token) => {
   try {
     const payload = { pass }; // Crea el objeto de datos con la contraseña
